@@ -1,0 +1,157 @@
+@{ ViewData["Title"] = "Planimetria Ufficio"; }
+
+@section styles {
+    <link rel="stylesheet" href="~/css/seatmap.css" asp-append-version="true" />
+}
+
+<div id="app-prenotazione" class="container-fluid py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Prenotazione Spazi</h3>
+            <p class="text-muted small mb-0">Gestione spazi e mensa aziendale.</p>
+        </div>
+        <div class="bg-white p-2 rounded border shadow-sm">
+            <input type="date" class="form-control border-0 fw-bold p-0" 
+                   style="width: 130px" 
+                   v-model="dataSelezionata" 
+                   v-on:change="caricaDatiMappa">
+        </div>
+    </div>
+
+    <div class="seatmap-wrapper">
+        
+        <div class="map-area">
+            <div v-if="loading" class="spinner-border text-primary m-5"></div>
+            
+            <svg v-else viewBox="0 0 1000 600" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <path id="office-chair" d="M4,18 C4,20 16,20 16,18 L16,14 C16,8 4,8 4,14 Z M2,14 C2,6 18,6 18,14 L18,16 C20,16 20,20 18,20 L2,20 C0,20 0,16 2,16 Z" class="chair-shape" />
+                </defs>
+
+                <image href="/images/piantina-base.png" x="0" y="0" width="1000" height="600" preserveAspectRatio="none" style="opacity: 0.6; filter: grayscale(30%);" />
+                
+                <text x="225" y="150" class="map-label" style="font-size:18px">SALA EVENTI</text>
+                <text x="700" y="380" class="map-label">OPEN SPACE</text>
+                <text x="340" y="380" class="map-label">DEV TEAM</text>
+                <text x="540" y="380" class="map-label">DEV TEAM</text>
+                <text x="100" y="380" class="map-label">MEETING</text>
+                <text x="960" y="300" class="map-label" style="fill:#d63384" transform="rotate(90, 960, 300)">RISTORANTE</text>
+
+                <g v-for="p in postazioni" :key="p.id" 
+                   class="seat-group"
+                   :class="getStatoClasse(p) + ' type-' + p.tipo.toLowerCase()"
+                   v-on:click="selezionaPostazione(p)">
+                   
+                    <g v-if="p.tipo === 'Singola'">
+                        <use href="#office-chair" :x="p.x+5" :y="p.y+20" />
+                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="3" class="desk-shape" />
+                    </g>
+
+                    <g v-else-if="p.tipo === 'Team'">
+                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="6" class="desk-shape" />
+                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="12" fill="#adb5bd" text-anchor="middle" font-weight="bold" style="pointer-events:none">TEAM</text>
+                        <use href="#office-chair" :x="p.x+20" :y="p.y-20" :transform="`rotate(180, ${p.x+30}, ${p.y-10})`" />
+                        <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y-20" :transform="`rotate(180, ${p.x+p.width/2}, ${p.y-10})`" />
+                        <use href="#office-chair" :x="p.x+p.width-40" :y="p.y-20" :transform="`rotate(180, ${p.x+p.width-30}, ${p.y-10})`" />
+                        <use href="#office-chair" :x="p.x+20" :y="p.y+p.height" />
+                        <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y+p.height" />
+                        <use href="#office-chair" :x="p.x+p.width-40" :y="p.y+p.height" />
+                    </g>
+
+                    <g v-else-if="p.tipo === 'Riunioni'">
+                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="20" class="desk-shape" />
+                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="11" fill="#adb5bd" text-anchor="middle" font-weight="bold" style="pointer-events:none">MEET</text>
+                    </g>
+
+                    <g v-else-if="p.tipo === 'Eventi'">
+                        <rect :x="p.x+50" :y="p.y" width="250" height="40" fill="#343a40" rx="2" />
+                        <rect :x="p.x" :y="p.y+60" :width="p.width" :height="p.height-60" fill="white" stroke="#adb5bd" stroke-width="2" stroke-dasharray="5,5" rx="4" />
+                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 30" font-size="14" fill="#adb5bd" text-anchor="middle" font-weight="bold">PLATEA</text>
+                    </g>
+
+                    <g v-else-if="p.tipo === 'Ristorante'">
+                        <use href="#office-chair" :x="p.x + 30" :y="p.y - 20" :transform="`rotate(180, ${p.x + 40}, ${p.y - 10})`" />
+                        <use href="#office-chair" :x="p.x + 70" :y="p.y - 20" :transform="`rotate(180, ${p.x + 80}, ${p.y - 10})`" />
+                        <use href="#office-chair" :x="p.x + 30" :y="p.y + p.height" />
+                        <use href="#office-chair" :x="p.x + 70" :y="p.y + p.height" />
+                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="4" class="desk-shape" />
+                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" text-anchor="middle" font-size="12" fill="#d63384" font-weight="bold" style="pointer-events:none">
+                            {{ p.postiTotali - p.postiOccupati }}/{{ p.postiTotali }}
+                        </text>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <partial name="_Sidebar" />
+
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    loading: false, loadingBtn: false,
+                    dataSelezionata: new Date().toISOString().split('T')[0],
+                    postazioni: [], postazioneSelezionata: null,
+                    numeroPostiRichiesti: 1 
+                }
+            },
+            mounted() { this.caricaDatiMappa(); },
+            methods: {
+                caricaDatiMappa() {
+                    this.loading = true; this.postazioneSelezionata = null;
+                    fetch(`/Prenotazione/GetDatiMappa?data=${this.dataSelezionata}`)
+                        .then(r => r.json()).then(d => { this.postazioni = d; this.loading = false; })
+                        .catch(e => { console.error(e); this.loading = false; });
+                },
+                getStatoClasse(p) {
+                    if (this.postazioneSelezionata && this.postazioneSelezionata.id === p.id) return "status-selected";
+                    
+                    if (p.tipo === 'Ristorante') {
+                        if (p.postiOccupati >= p.postiTotali) return "status-booked";
+                        if (p.postiOccupati > 0) return "status-partial"; 
+                        return "status-free";
+                    }
+                    return p.isOccupata ? "status-booked" : "status-free";
+                },
+                selezionaPostazione(p) { 
+                    if (p.tipo === 'Ristorante' && p.postiOccupati >= p.postiTotali) return;
+                    if (p.tipo !== 'Ristorante' && p.isOccupata) return;
+                    
+                    this.postazioneSelezionata = p;
+                    this.numeroPostiRichiesti = 1; 
+                },
+                confermaPrenotazione() {
+                    this.loadingBtn = true;
+                    let url = '/Prenotazione/Prenota'; 
+                    let payload = { postazioneId: this.postazioneSelezionata.id, data: this.dataSelezionata };
+
+                    if (this.postazioneSelezionata.tipo === 'Ristorante') {
+                        url = '/Ristorazione/PrenotaTavolo';
+                        payload.numeroPosti = this.numeroPostiRichiesti;
+                    }
+
+                    fetch(url, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).then(async r => {
+                        this.loadingBtn = false;
+                        const res = await r.json();
+                        if(r.ok) { 
+                            alert("✅ " + res.message); 
+                            this.caricaDatiMappa(); 
+                        } else {
+                            alert("❌ " + res.message);
+                        }
+                    });
+                }
+            }
+        }).mount('#app-prenotazione');
+    </script>
+}
