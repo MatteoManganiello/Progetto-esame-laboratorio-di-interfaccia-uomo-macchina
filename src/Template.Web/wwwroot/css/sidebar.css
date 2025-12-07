@@ -1,0 +1,105 @@
+/* * FILE: sidebar.css
+ * SCOPO: Stili specifici per il pannello laterale (_Sidebar.cshtml)
+ */
+
+/* --- CONTENITORE SIDEBAR --- */
+.sidebar-area {
+    background-color: #ffffff;
+    border-left: 1px solid #e9ecef;
+    /* Ombra morbida a sinistra per dare profondità sopra la mappa */
+    box-shadow: -5px 0 20px rgba(0,0,0,0.03); 
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Occupa tutta l'altezza disponibile */
+    position: relative;
+    z-index: 100;
+    overflow-y: auto; /* Scroll se il contenuto è troppo lungo */
+}
+
+/* --- CARD DI PRENOTAZIONE --- */
+/* Il box grigio/azzurro che contiene i dettagli */
+.booking-card {
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* --- INPUT SELECT (Menu a tendina) --- */
+/* Rendiamo il select più grande e leggibile */
+.input-group-lg .form-select {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+}
+
+.input-group-text {
+    background-color: #fff;
+    border-right: none;
+}
+
+/* Focus state: diventa blu quando clicchi */
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-select {
+    border-color: var(--bs-primary, #0d6efd) !important;
+    color: var(--bs-primary, #0d6efd);
+}
+
+/* --- LEGENDA (Box in basso) --- */
+.legend-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.legend-indicator {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    border-radius: 4px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* Effetto hover sugli elementi della legenda */
+.legend-box .d-flex:hover {
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+/* --- ANIMAZIONI --- */
+.animate__fadeIn {
+    animation: fadeInUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- UTILITY --- */
+.spacing-1 {
+    letter-spacing: 1px;
+}
+
+/* Fix per Mobile: su schermi piccoli l'ombra va in alto, non a sinistra */
+@media (max-width: 991px) {
+    .sidebar-area {
+        border-left: none;
+        border-top: 1px solid #e9ecef;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        min-height: auto;
+    }
+}

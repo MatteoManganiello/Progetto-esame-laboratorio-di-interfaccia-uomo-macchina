@@ -113,7 +113,14 @@ namespace Template.Web
                 endpoints.MapHub<TemplateHub>("/templateHub");
 
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
-                endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
+
+                // =========================================================
+                // MODIFICA QUI:
+                // Abbiamo cambiato il default da "Login" a "Prenotazione/Mappa"
+                // =========================================================
+                endpoints.MapControllerRoute(
+                    name: "default", 
+                    pattern: "{controller=Prenotazione}/{action=Mappa}/{id?}");
             });
         }
     }

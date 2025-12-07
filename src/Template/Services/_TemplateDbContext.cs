@@ -16,5 +16,7 @@ namespace Template.Services
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Template.Services.Shared.Postazione> Postazioni { get; set; }
+public DbSet<Template.Services.Shared.Prenotazione> Prenotazioni { get; set; }
     }
 }

@@ -1,0 +1,106 @@
+@section styles {
+    
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
+}
+
+
+
+<div class="sidebar-area d-flex flex-column h-100 position-relative overflow-hidden">
+
+    <div v-if="postazioneSelezionata" class="animate__animated animate__fadeIn d-flex flex-column h-100 pb-5">
+        
+        <div class="mb-4">
+            <div class="d-flex align-items-center text-primary fw-bold small text-uppercase mb-2 spacing-1">
+                <i class="fa-solid me-2" :class="postazioneSelezionata.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-building'"></i>
+                {{ postazioneSelezionata.tipo }}
+            </div>
+            <h2 class="fw-bolder text-dark m-0">{{ postazioneSelezionata.nome }}</h2>
+        </div>
+        
+        <div class="flex-grow-1">
+            <div v-if="postazioneSelezionata.tipo === 'Ristorante'" class="booking-card bg-light rounded-4 p-4 mb-3">
+                <label class="form-label fw-bold text-dark mb-3 d-block">Quanti posti vuoi prenotare?</label>
+                
+                <div class="input-group input-group-lg mb-4 shadow-sm">
+                     <span class="input-group-text bg-white text-primary border-end-0 ps-3">
+                        <i class="fa-solid fa-user-group"></i>
+                    </span>
+                    <select class="form-select border-start-0 fw-bold text-dark ps-2" v-model="numeroPostiRichiesti" style="box-shadow: none;">
+                        <option v-for="n in (postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati)" :value="n">
+                            {{ n }} {{ n === 1 ? 'Persona' : 'Persone' }}
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center small bg-white p-3 rounded-3 border">
+                    <span class="text-muted fw-semibold">Posti disponibili:</span>
+                    <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-2 fs-6">
+                        <i class="fa-solid fa-chair me-2 opacity-50"></i>
+                        <strong>{{ postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati }}</strong> <span class="opacity-50 mx-1">/</span> {{ postazioneSelezionata.postiTotali }}
+                    </span>
+                </div>
+            </div>
+            
+            <div v-else class="booking-card bg-primary-subtle rounded-4 p-4 mb-3 d-flex align-items-start">
+                <div class="bg-white p-3 rounded-circle text-primary me-3 shadow-sm">
+                     <i class="fa-solid fa-door-closed fa-xl"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-primary-emphasis mb-1">Prenotazione Esclusiva</h5>
+                    <p class="text-primary-emphasis opacity-75 small mb-0 lh-sm">
+                        Stai prenotando l'intero spazio ad uso esclusivo. La capienza massima è di {{ postazioneSelezionata.postiTotali }} persone.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-auto pt-4 border-top">
+            <div class="d-grid gap-3">
+                <button class="btn btn-primary btn-lg py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center rounded-pill animate__animated animate__pulse animate__faster" 
+                        v-on:click="confermaPrenotazione" 
+                        :disabled="loadingBtn">
+                    <span v-if="loadingBtn" class="spinner-border spinner-border-sm me-2"></span>
+                    <i v-else class="fa-solid fa-calendar-check me-2"></i>
+                    <span v-if="!loadingBtn">Conferma Prenotazione</span>
+                </button>
+                <button class="btn btn-light btn-lg py-2 fw-semibold text-muted rounded-pill border-0" v-on:click="postazioneSelezionata = null">
+                    Annulla selezione
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div v-else class="text-center h-100 d-flex flex-column justify-content-center align-items-center p-4 animate__animated animate__fadeIn">
+        <div class="mb-4 p-4 bg-light rounded-circle shadow-sm">
+            <i class="fa-solid fa-map-location-dot fa-3x text-primary opacity-50"></i>
+        </div>
+        <h4 class="fw-bold text-dark">Inizia la prenotazione</h4>
+        <p class="text-muted mb-5 col-10 mx-auto">Clicca su una postazione, una sala o un tavolo sulla mappa per vedere i dettagli e prenotare.</p>
+        
+        <div class="legend-box bg-light p-4 rounded-4 text-start w-100 border-top border-light-subtle shadow-sm">
+            <h6 class="fw-bold small text-uppercase text-muted mb-3 spacing-1 ls-1">Legenda Mappa</h6>
+            
+            <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                <span class="legend-indicator bg-success rounded-2 shadow-sm me-3"></span> 
+                <div>
+                    <span class="d-block fw-bold text-dark fs-6">Libero</span>
+                    <small class="text-muted">Disponibile per la prenotazione</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                <span class="legend-indicator bg-warning rounded-2 shadow-sm me-3"></span>
+                 <div>
+                    <span class="d-block fw-bold text-dark fs-6">Parzialmente Occupato</span>
+                    <small class="text-muted">Ci sono ancora posti (solo Ristorante)</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center p-2 bg-white rounded-3 border border-light-subtle opacity-75">
+                <span class="legend-indicator bg-danger rounded-2 shadow-sm me-3"></span>
+                 <div>
+                    <span class="d-block fw-bold text-dark fs-6">Occupato / Pieno</span>
+                    <small class="text-muted">Non disponibile</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
