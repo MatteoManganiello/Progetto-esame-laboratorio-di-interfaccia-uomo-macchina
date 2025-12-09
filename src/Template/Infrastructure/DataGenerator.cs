@@ -1,7 +1,7 @@
-﻿using Template.Services.Shared;
-using System;
+﻿using System;
 using System.Linq;
 using Template.Services;
+using Template.Services.Shared;
 
 namespace Template.Infrastructure
 {

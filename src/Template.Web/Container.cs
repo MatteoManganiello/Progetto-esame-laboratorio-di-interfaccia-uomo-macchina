@@ -1,5 +1,5 @@
-﻿using Template.Services.Shared;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Template.Services.Shared;
 using Template.Web.SignalR;
 
 namespace Template.Web

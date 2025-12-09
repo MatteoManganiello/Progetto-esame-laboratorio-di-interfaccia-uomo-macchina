@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
 using Template.Web.SignalR.Hubs;
 using Template.Web.SignalR.Hubs.Events;
 

@@ -1,4 +1,7 @@
 ﻿//using Template.Web.Hubs;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,12 +10,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using Template.Services;
 using Template.Web.Infrastructure;
 using Template.Web.SignalR.Hubs;
+
+// --- MODIFICA 1: Aggiunti i Namespace mancanti ---
+using Template.Services.Shared; // Serve per trovare TemplateDbContext
+using Template.Web.Features.Prenotazione.Services; // Serve per trovare PrenotazioneService
+// -------------------------------------------------
 
 namespace Template.Web
 {
@@ -32,10 +37,17 @@ namespace Template.Web
         {
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
+            // Configurazione Database (Qui stai usando la memoria RAM per test)
+            // Se vuoi usare SQL Server, cambia UseInMemoryDatabase con UseSqlServer
             services.AddDbContext<TemplateDbContext>(options =>
             {
                 options.UseInMemoryDatabase(databaseName: "Template");
             });
+
+            // --- MODIFICA 2: Registrazione del nuovo Servizio Prenotazioni ---
+            // Senza questa riga, il PrenotazioneController darà errore
+            services.AddScoped<PrenotazioneService>();
+            // ----------------------------------------------------------------
 
             // SERVICES FOR AUTHENTICATION
             services.AddSession();
@@ -114,10 +126,7 @@ namespace Template.Web
 
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
 
-                // =========================================================
-                // MODIFICA QUI:
-                // Abbiamo cambiato il default da "Login" a "Prenotazione/Mappa"
-                // =========================================================
+                // Default route impostata sulla Mappa
                 endpoints.MapControllerRoute(
                     name: "default", 
                     pattern: "{controller=Prenotazione}/{action=Mappa}/{id?}");
