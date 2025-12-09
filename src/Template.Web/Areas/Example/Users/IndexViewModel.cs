@@ -1,11 +1,11 @@
-﻿using Template.Web.Infrastructure;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Template.Services.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Template.Services.Shared;
+using Template.Web.Infrastructure;
 
 namespace Template.Web.Areas.Example.Users
 {

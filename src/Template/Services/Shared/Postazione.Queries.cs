@@ -4,11 +4,11 @@
  * Include: Eventi, Open Space, Team, Meeting E RISTORANTE.
  */
 
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Template.Services.Shared
 {
@@ -47,18 +47,18 @@ namespace Template.Services.Shared
 
                 // --- UFFICI E SALE ---
                 // Sala Eventi
-                lista.Add(new Postazione { CodiceUnivoco = "event-main", Nome = "Main Hall", Tipo = "Eventi", X = 50, Y = 50, Width = 350, Height = 250 });
+                lista.Add(new Postazione { CodiceUnivoco = "event-main", Nome = "Main Hall", Tipo = "Eventi", X = 35, Y = 30, Width = 350, Height = 250 });
 
                 // Open Space
-                AggiungiGruppo(lista, ref idCounter, "Desk", "Singola", startX: 610, startY: 30, rows: 5, cols: 3, width: 30, height: 30, gap: 20);
+                AggiungiGruppo(lista, ref idCounter, "Desk", "Singola", startX: 570, startY: 30, rows: 5, cols: 3, width: 30, height: 30, gap: 20);
 
                 // Team Rooms (Capienza 6)
-                lista.Add(new Postazione { CodiceUnivoco = "dev-1", Nome = "Team Alpha", Tipo = "Team", X = 280, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
-                lista.Add(new Postazione { CodiceUnivoco = "dev-2", Nome = "Team Beta", Tipo = "Team", X = 480, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
+                lista.Add(new Postazione { CodiceUnivoco = "dev-1", Nome = "Team Alpha", Tipo = "Team", X = 250, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
+                lista.Add(new Postazione { CodiceUnivoco = "dev-2", Nome = "Team Beta", Tipo = "Team", X = 450, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
 
                 // Sale Riunioni (Capienza 8)
-                lista.Add(new Postazione { CodiceUnivoco = "meet-1", Nome = "Sala Red", Tipo = "Riunioni", X = 40, Y = 490, Width = 125, Height = 50, PostiTotali = 8 });
-                lista.Add(new Postazione { CodiceUnivoco = "meet-2", Nome = "Sala Blue", Tipo = "Riunioni", X = 680, Y = 490, Width = 125, Height = 50, PostiTotali = 8 });
+                lista.Add(new Postazione { CodiceUnivoco = "meet-1", Nome = "Sala Red", Tipo = "Riunioni", X = 40, Y = 485, Width = 125, Height = 50, PostiTotali = 8 });
+                lista.Add(new Postazione { CodiceUnivoco = "meet-2", Nome = "Sala Blue", Tipo = "Riunioni", X = 640, Y = 485, Width = 125, Height = 50, PostiTotali = 8 });
 
                 // --- RISTORANTE (REINSERITO QUI) ---
                 // 3 Tavoli Rettangolari da 4 posti nel corridoio destro
@@ -69,10 +69,10 @@ namespace Template.Services.Shared
                         CodiceUnivoco = $"rist-{i+1}", 
                         Nome = $"Tavolo {i+1}", 
                         Tipo = "Ristorante", 
-                        X = 856,              
-                        Y = 88 + (i * 130), // Spaziatura verticale
-                        Width = 120, // Largo (rettangolare)
-                        Height = 60,
+                        X = 820,              
+                        Y = 45 + (i * 115), // Spaziatura verticale
+                        Width = 100, // Largo (rettangolare)
+                        Height = 50,
                         PostiTotali = 4
                     });
                 }

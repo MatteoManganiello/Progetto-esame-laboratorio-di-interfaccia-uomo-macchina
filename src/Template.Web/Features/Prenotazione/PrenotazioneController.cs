@@ -2,9 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic; // AGGIUNTO: Serve per List<>
+using System.Linq;
+using System.Security.Claims;     // AGGIUNTO: Serve per ClaimTypes
 using System.Threading.Tasks;
 using Template.Services.Shared;
-using Template.Services; // <--- FONDAMENTALE: Serve per vedere TemplateDbContext
+using Template.Services;
+using Template.Web.Features.Prenotazione.Models;
 
 namespace Template.Web.Features.Prenotazione
 {
@@ -20,9 +24,9 @@ namespace Template.Web.Features.Prenotazione
             _dbContext = dbContext;
         }
 
-        public virtual IActionResult Mappa() 
-        { 
-            return View(); 
+        public virtual IActionResult Mappa()
+        {
+            return View();
         }
 
         [HttpGet]
@@ -31,63 +35,142 @@ namespace Template.Web.Features.Prenotazione
             var dataRichiesta = data ?? DateTime.Today;
             var query = new MappaQuery { Data = dataRichiesta };
             var risultato = await _sharedService.Query(query);
-            return Json(risultato.Postazioni);
+
+            var postazioniArricchite = risultato.Postazioni.Select(p => new
+            {
+                p.Id,
+                p.Nome,
+                p.Tipo,
+                p.X,
+                p.Y,
+                p.Width,
+                p.Height,
+                p.PostiTotali,
+                p.PostiOccupati,
+                p.IsOccupata,
+                MetriQuadri = CalcolaMq(p.Tipo, p.Id),
+                haledwall = p.Tipo == "Eventi",
+                HaProiettore = p.Tipo == "Riunioni" || p.Tipo == "Team",
+                HaFinestre = p.Tipo == "Singola" || p.Tipo == "Ristorante" || p.Tipo == "Team" || p.Tipo == "Riunioni" || p.Tipo == "Eventi",
+                Descrizione = GeneraDescrizione(p.Tipo, p.Id)
+            });
+
+            return Json(postazioniArricchite);
         }
 
         [HttpPost]
         public virtual async Task<IActionResult> Prenota([FromBody] PrenotaRequest request)
         {
-            try 
+            if (!ModelState.IsValid || request.PostazioniIds == null || !request.PostazioniIds.Any())
             {
-                var currentUserId = Guid.NewGuid().ToString(); 
+                return BadRequest(new { success = false, message = "Selezionare almeno una postazione." });
+            }
 
-                // 1. CONTROLLO DISPONIBILITÀ ESCLUSIVA
-                // Se esiste già UNA prenotazione per quella stanza in quella data, è occupata.
-                var isOccupata = await _dbContext.Prenotazioni
-                    .AnyAsync(p => p.PostazioneId == request.PostazioneId && p.DataPrenotazione.Date == request.Data.Date);
+            // 1. Recupero User ID
+            var userId = User.Identity?.IsAuthenticated == true
+                         ? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity.Name
+                         : "Utente_Guest";
 
-                if (isOccupata)
+            // 2. Transazione Atomica (Tutto o Niente)
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
+            {
+                // A. CONTROLLO DISPONIBILITÀ (Bulk Check)
+                var postazioniOccupate = await _dbContext.Prenotazioni
+                    .Where(p => request.PostazioniIds.Contains(p.PostazioneId)
+                             && p.DataPrenotazione.Date == request.Data.Date)
+                    .Select(p => p.Postazione.Nome)
+                    .ToListAsync();
+
+                if (postazioniOccupate.Any())
                 {
-                    return BadRequest(new { success = false, message = "Spiacente, questo spazio è già prenotato per la data selezionata." });
+                    var nomi = string.Join(", ", postazioniOccupate);
+                    return BadRequest(new { success = false, message = $"Impossibile completare: le seguenti postazioni sono già occupate: {nomi}." });
                 }
 
-                // 2. CONTROLLO CAPIENZA
-                // Recuperiamo la postazione per vedere quanti posti ha
-                var postazione = await _dbContext.Postazioni.FindAsync(request.PostazioneId);
-                
-                // Se PostiTotali nel DB è 0 (vecchi dati), usiamo 1 come fallback
-                int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
+                // B. RECUPERO DETTAGLI POSTAZIONI (Bulk Fetch)
+                var postazioniDb = await _dbContext.Postazioni
+                    .Where(p => request.PostazioniIds.Contains(p.Id))
+                    .ToListAsync();
 
-                if (request.NumeroPersone > capienzaMax)
+                if (postazioniDb.Count != request.PostazioniIds.Count)
                 {
-                    return BadRequest(new { success = false, message = $"Il numero di persone ({request.NumeroPersone}) supera la capienza massima della stanza ({capienzaMax})." });
+                    return BadRequest(new { success = false, message = "Una o più postazioni selezionate non esistono." });
                 }
 
-                // 3. SALVATAGGIO
-                var nuovaPrenotazione = new Template.Services.Shared.Prenotazione
+                // C. CREAZIONE PRENOTAZIONI
+                foreach (var postazione in postazioniDb)
                 {
-                    PostazioneId = request.PostazioneId,
-                    DataPrenotazione = request.Data,
-                    UserId = currentUserId
-                };
+                    int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
+                    if (request.NumeroPersone > capienzaMax)
+                    {
+                        return BadRequest(new { success = false, message = $"La postazione '{postazione.Nome}' non può ospitare {request.NumeroPersone} persone (Max: {capienzaMax})." });
+                    }
 
-                _dbContext.Prenotazioni.Add(nuovaPrenotazione);
+                    var nuovaPrenotazione = new Template.Services.Shared.Prenotazione
+                    {
+                        PostazioneId = postazione.Id,
+                        DataPrenotazione = request.Data,
+                        UserId = userId
+                    };
+
+                    _dbContext.Prenotazioni.Add(nuovaPrenotazione);
+                }
+
+                // D. SALVATAGGIO
                 await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-                return Ok(new { success = true, message = "Spazio prenotato con successo!" });
+                return Ok(new { success = true, message = $"{request.PostazioniIds.Count} spazi prenotati con successo!" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = "Errore: " + ex.Message });
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { success = false, message = "Errore durante la prenotazione multipla: " + ex.Message });
             }
         }
 
-        // Classe per ricevere i dati dal JSON
-        public class PrenotaRequest
+        private int CalcolaMq(string tipo, int id)
         {
-            public int PostazioneId { get; set; }
-            public DateTime Data { get; set; }
-            public int NumeroPersone { get; set; } = 1;
+            switch (tipo)
+            {
+                case "Singola": return 52;
+                case "Team": return id % 2 == 0 ? 25 : 27;
+                case "Riunioni": return id % 2 == 0 ? 23 : 25;
+                case "Eventi": return 112;
+                case "Ristorante": return 77;
+                default: return 0;
+            }
         }
+
+        private string GeneraDescrizione(string tipo, int id)
+        {
+            string baseComfort = "WiFi Ultra, A/C, Cam.";
+
+            switch (tipo)
+            {
+                case "Singola":
+                    return $"Open space silenzioso. {baseComfort}";
+                case "Team":
+                    string teamExtra = "Parquet, Locker. " + baseComfort;
+                    return id % 2 == 0
+                        ? $"Frontend Beta: iMac Pro e Tavolette. {teamExtra}"
+                        : $"Backend Alpha: Lavagne e Schermi doppi. {teamExtra}";
+                case "Riunioni":
+                    string meetExtra = "Parquet, Locker. " + baseComfort;
+                    return id % 2 == 0
+                        ? $"Blue Room: Insonorizzata. {meetExtra}"
+                        : $"Creative: Pareti scrivibili. {meetExtra}";
+                case "Eventi":
+                    return $"Led Wall 4K, Audio Dolby. {baseComfort}";
+                case "Ristorante":
+                    return $"Area ristoro, microonde/caffè. {baseComfort}";
+                default: return baseComfort;
+            }
+        }
+
+        // --- CORREZIONE QUI SOTTO ---
+        
     }
 }

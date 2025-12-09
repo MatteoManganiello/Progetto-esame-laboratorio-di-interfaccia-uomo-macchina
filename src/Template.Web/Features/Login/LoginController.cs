@@ -1,14 +1,14 @@
-using Template.Web.Infrastructure;
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using Template.Services.Shared;
-using System.Threading.Tasks;
 using Template.Infrastructure;
+using Template.Services.Shared;
+using Template.Web.Infrastructure;
 
 namespace Template.Web.Features.Login
 {

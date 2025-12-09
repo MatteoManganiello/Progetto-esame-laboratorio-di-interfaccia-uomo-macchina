@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Template.Web.SignalR.Hubs
 {
