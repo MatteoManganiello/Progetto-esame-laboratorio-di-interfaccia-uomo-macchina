@@ -50,7 +50,7 @@ namespace Template.Services.Shared
                 lista.Add(new Postazione { CodiceUnivoco = "event-main", Nome = "Main Hall", Tipo = "Eventi", X = 50, Y = 50, Width = 350, Height = 250 });
 
                 // Open Space
-                AggiungiGruppo(lista, ref idCounter, "Desk", "Singola", startX: 660, startY: 30, rows: 5, cols: 2, width: 30, height: 30, gap: 20);
+                AggiungiGruppo(lista, ref idCounter, "Desk", "Singola", startX: 610, startY: 30, rows: 5, cols: 3, width: 30, height: 30, gap: 20);
 
                 // Team Rooms (Capienza 6)
                 lista.Add(new Postazione { CodiceUnivoco = "dev-1", Nome = "Team Alpha", Tipo = "Team", X = 280, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
