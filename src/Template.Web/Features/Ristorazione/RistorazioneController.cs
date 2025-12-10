@@ -1,15 +1,17 @@
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Template.Services; // <--- 1. AGGIUNTO QUESTO PER IL DBCONTEXT
 using Template.Services.Shared;
+using Template.Services;
 
 namespace Template.Web.Features.Ristorazione
 {
-    [AllowAnonymous]
+    [Authorize]
     public partial class RistorazioneController : Controller
     {
         private readonly SharedService _sharedService;
@@ -26,11 +28,9 @@ namespace Template.Web.Features.Ristorazione
         [HttpGet]
         public virtual async Task<IActionResult> GetTavoli(DateTime? data)
         {
-            var query = new MappaQuery { Data = data ?? DateTime.Today };
-            var mappa = await _sharedService.Query(query);
-            // Filtriamo solo i tavoli
-            var tavoli = mappa.Postazioni.Where(p => p.Tipo == "Ristorante");
-            return Json(tavoli);
+            var dataRichiesta = data ?? DateTime.Today;
+            var result = await _sharedService.GetRistorante(dataRichiesta);
+            return Json(result.Tavoli);
         }
 
         [HttpPost]
@@ -38,51 +38,53 @@ namespace Template.Web.Features.Ristorazione
         {
             try
             {
-                // Simulazione ID utente (in produzione usa User.Identity...)
-                var currentUserId = Guid.NewGuid().ToString(); 
+                // Recuperiamo l'ID reale dell'utente
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity.Name ?? "Utente_Sconosciuto";
 
-                // 1. CONTROLLO: HAI UNA SCRIVANIA OGGI?
-                var haScrivania = await _dbContext.Prenotazioni // <--- 2. USA "Prenotazioni" (PLURALE)
+                // 1. REGOLA: HAI UNA SCRIVANIA?
+                var haScrivania = await _dbContext.Prenotazioni
                     .Include(p => p.Postazione)
-                    .AnyAsync(p => 
-                        p.UserId == currentUserId && 
+                    .AnyAsync(p =>
+                        p.UserId == currentUserId &&
                         p.DataPrenotazione.Date == request.Data.Date &&
                         p.Postazione.Tipo != "Ristorante"
                     );
 
-                // Nota: Per testare senza aver prenotato scrivania, puoi commentare questo IF temporaneamente
-                if (!haScrivania)
-                {
-                    // return BadRequest(new { success = false, message = "Devi prenotare una scrivania prima!" });
-                }
+                // IMPORTANTE: Decommenta le righe sotto per ATTIVARE il blocco "Niente scrivania, niente cibo"
+                // if (!haScrivania) 
+                // {
+                //      return BadRequest(new { success = false, message = "Devi prenotare una scrivania prima di poter prenotare il pranzo!" });
+                // }
 
-                // 2. CONTROLLO POSTI LIBERI
-                var postiOccupati = await _dbContext.Prenotazioni // <--- PLURALE
+                // 2. REGOLA: CONTROLLO POSTI
+                var postiGiaOccupati = await _dbContext.Prenotazioni
                     .CountAsync(p => p.PostazioneId == request.PostazioneId && p.DataPrenotazione.Date == request.Data.Date);
 
-                if (postiOccupati + request.NumeroPosti > 4)
+                if (postiGiaOccupati + request.NumeroPosti > 4)
                 {
-                    return BadRequest(new { success = false, message = $"Posti insufficienti. Liberi: {4 - postiOccupati}" });
+                    return BadRequest(new { success = false, message = $"Posti insufficienti! Rimasti: {4 - postiGiaOccupati}" });
                 }
 
                 // 3. SALVATAGGIO
                 for (int i = 0; i < request.NumeroPosti; i++)
                 {
-                    _dbContext.Prenotazioni.Add(new Template.Services.Shared.Prenotazione // <--- PLURALE + Namespace completo per sicurezza
+                    _dbContext.Prenotazioni.Add(new Template.Services.Shared.Prenotazione
                     {
                         PostazioneId = request.PostazioneId,
                         DataPrenotazione = request.Data,
-                        UserId = currentUserId
+                        UserId = currentUserId, // Salvataggio ID Reale
+                        DataCreazione = DateTime.Now
                     });
                 }
-                
+
+                // Salvataggio senza transazione (compatibile con InMemory DB)
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(new { success = true, message = "Tavolo prenotato!" });
+                return Ok(new { success = true, message = $"Prenotazione ristorante confermata per {request.NumeroPosti} persone!" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new { success = false, message = "Errore: " + ex.Message });
             }
         }
 

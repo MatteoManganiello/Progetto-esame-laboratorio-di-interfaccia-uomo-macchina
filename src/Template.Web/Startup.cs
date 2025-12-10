@@ -1,5 +1,4 @@
-﻿//using Template.Web.Hubs;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,17 +13,15 @@ using Template.Services;
 using Template.Web.Infrastructure;
 using Template.Web.SignalR.Hubs;
 
-// --- MODIFICA 1: Aggiunti i Namespace mancanti ---
-using Template.Services.Shared; // Serve per trovare TemplateDbContext
-using Template.Web.Features.Prenotazione.Services; // Serve per trovare PrenotazioneService
-// -------------------------------------------------
+// --- NAMESPACE NECESSARI ---
+using Template.Services.Shared; // Per SharedService
+using Template.Web.Features.Prenotazione.Services; // Per PrenotazioneService
 
 namespace Template.Web
 {
     public class Startup
     {
         public IConfiguration Configuration { get; }
-
         public IWebHostEnvironment Env { get; set; }
 
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
@@ -37,17 +34,22 @@ namespace Template.Web
         {
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
-            // Configurazione Database (Qui stai usando la memoria RAM per test)
-            // Se vuoi usare SQL Server, cambia UseInMemoryDatabase con UseSqlServer
+            // 1. DATABASE
             services.AddDbContext<TemplateDbContext>(options =>
             {
                 options.UseInMemoryDatabase(databaseName: "Template");
             });
 
-            // --- MODIFICA 2: Registrazione del nuovo Servizio Prenotazioni ---
-            // Senza questa riga, il PrenotazioneController darà errore
+            // 2. REGISTRAZIONE SERVIZI (Dependency Injection)
+            // ==============================================================
+            
+            // A. SharedService (Fondamentale per la mappa e i controller)
+            services.AddScoped<SharedService>();
+
+            // B. PrenotazioneService (Logica prenotazioni multiple)
             services.AddScoped<PrenotazioneService>();
-            // ----------------------------------------------------------------
+            
+            // ==============================================================
 
             // SERVICES FOR AUTHENTICATION
             services.AddSession();
@@ -60,7 +62,7 @@ namespace Template.Web
             var builder = services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddDataAnnotationsLocalization(options =>
-                {                        // Enable loading SharedResource for ModelLocalizer
+                {
                     options.DataAnnotationLocalizerProvider = (type, factory) =>
                         factory.Create(typeof(SharedResource));
                 });
@@ -84,31 +86,21 @@ namespace Template.Web
                 options.ViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
             });
 
-            // SIGNALR FOR COLLABORATIVE PAGES
             services.AddSignalR();
-
-            // CONTAINER FOR ALL EXTRA CUSTOM SERVICES
             Container.RegisterTypes(services);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // Configure the HTTP request pipeline.
             if (!env.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-
-                // Https redirection only in production
                 app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            // Localization support if you want to
             app.UseRequestLocalization(SupportedCultures.CultureNames);
-
             app.UseRouting();
-
-            // Adding authentication to pipeline
             app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -121,12 +113,10 @@ namespace Template.Web
 
             app.UseEndpoints(endpoints =>
             {
-                // ROUTING PER HUB
                 endpoints.MapHub<TemplateHub>("/templateHub");
-
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
 
-                // Default route impostata sulla Mappa
+                // Default route sulla Mappa Prenotazioni
                 endpoints.MapControllerRoute(
                     name: "default", 
                     pattern: "{controller=Prenotazione}/{action=Mappa}/{id?}");
@@ -143,8 +133,6 @@ namespace Template.Web
         {
             CultureNames = new[] { "it-it" };
             Cultures = CultureNames.Select(c => new CultureInfo(c)).ToArray();
-
-            //NB: attenzione nel progetto a settare correttamente <NeutralLanguage>it-IT</NeutralLanguage>
         }
     }
 }

@@ -5,11 +5,21 @@ namespace Template.Web.Features.Prenotazione.Models
 {
     public class PrenotaRequest
     {
+        // Lista principale usata dal Controller
         public List<int> PostazioniIds { get; set; } = new List<int>(); 
+
+        // --- TRUCCO FONDAMENTALE ---
+        // Se il frontend manda "postazioneId" (singolare), lo mettiamo nella lista.
+        public int PostazioneId 
+        { 
+            set 
+            { 
+                if (value > 0) PostazioniIds = new List<int> { value }; 
+            } 
+        }
+
         public DateTime Data { get; set; }
         public int NumeroPersone { get; set; } = 1;
-        
-        // Aggiungi questo se vuoi gestire le note anche qui
         public string Note { get; set; }
     }
 }

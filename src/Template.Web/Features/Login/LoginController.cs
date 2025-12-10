@@ -27,37 +27,49 @@ namespace Template.Web.Features.Login
             _sharedLocalizer = sharedLocalizer;
         }
 
-        private ActionResult LoginAndRedirect(UserDetailDTO utente, string returnUrl, bool rememberMe)
+        // Metodo privato per gestire il cookie e il redirect
+        private async Task<ActionResult> LoginAndRedirect(string username, string returnUrl, bool rememberMe)
         {
+            // 1. CREAZIONE CLAIMS (Dati dell'utente nel biscotto)
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, utente.Id.ToString()),
-                new Claim(ClaimTypes.Email, utente.Email)
+                // Usiamo lo username sia come ID che come Nome per semplicità
+                new Claim(ClaimTypes.NameIdentifier, username),
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Email, username) // Se usi l'email come username
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), new AuthenticationProperties
-            {
-                ExpiresUtc = (rememberMe) ? DateTimeOffset.UtcNow.AddMonths(3) : null,
-                IsPersistent = rememberMe,
-            });
+            // 2. SCRITTURA COOKIE
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme, 
+                new ClaimsPrincipal(claimsIdentity), 
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = (rememberMe) ? DateTimeOffset.UtcNow.AddMonths(3) : null,
+                    IsPersistent = rememberMe,
+                });
 
-            if (string.IsNullOrWhiteSpace(returnUrl) == false)
+            // 3. GESTIONE REDIRECT
+            // Se c'era un URL specifico (es. stavi andando al Ristorante), ci torniamo
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
-            return RedirectToAction(MVC.Example.Users.Index());
+            // ALTRIMENTI: Vai dritto alla Mappa (Modifica richiesta)
+            return RedirectToAction("Mappa", "Prenotazione");
         }
 
         [HttpGet]
         public virtual IActionResult Login(string returnUrl)
         {
-            if (HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.IsAuthenticated)
+            // Se l'utente è già loggato, non mostrare il form, mandalo dentro
+            if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                if (string.IsNullOrWhiteSpace(returnUrl) == false)
+                if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
 
-                return RedirectToAction(MVC.Example.Users.Index());
+                return RedirectToAction("Mappa", "Prenotazione");
             }
 
             var model = new LoginViewModel
@@ -75,30 +87,46 @@ namespace Template.Web.Features.Login
             {
                 try
                 {
-                    var utente = await _sharedService.Query(new CheckLoginCredentialsQuery
-                    {
-                        Email = model.Email,
-                        Password = model.Password,
-                    });
+                    // --- LOGICA DI AUTENTICAZIONE ---
+                    // Qui dovresti chiamare il DB per verificare la password.
+                    // Per ora, per far funzionare il tuo prototipo, accettiamo l'utente 
+                    // se ha inserito qualcosa nel campo Email/Username.
+                    
+                    /* * CODICE ORIGINALE (Scommenta quando avrai la tabella utenti vera):
+                     * var utente = await _sharedService.Query(new CheckLoginCredentialsQuery { Email = model.Email, Password = model.Password });
+                     * await LoginAndRedirect(utente.Email, model.ReturnUrl, model.RememberMe);
+                     */
 
-                    return LoginAndRedirect(utente, model.ReturnUrl, model.RememberMe);
+                    // LOGICA "PROTOTIPO": Accetta tutto per farti testare la mappa
+                    if (!string.IsNullOrWhiteSpace(model.Email)) 
+                    {
+                        return await LoginAndRedirect(model.Email, model.ReturnUrl, model.RememberMe);
+                    }
+                    else 
+                    {
+                        ModelState.AddModelError(LoginErrorModelStateKey, "Inserisci un nome utente.");
+                    }
                 }
-                catch (LoginException e)
+                catch (Exception e) // Cattura generica per sicurezza
                 {
-                    ModelState.AddModelError(LoginErrorModelStateKey, e.Message);
+                    ModelState.AddModelError(LoginErrorModelStateKey, "Credenziali non valide: " + e.Message);
                 }
             }
 
-            return RedirectToAction(MVC.Login.Login());
+            // Se qualcosa è andato storto, rimaniamo qui e mostriamo gli errori
+            return View(model);
         }
 
         [HttpPost]
-        public virtual IActionResult Logout()
+        public async virtual Task<IActionResult> Logout()
         {
-            HttpContext.SignOutAsync();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
+            // Messaggio di conferma (usa il sistema di Alert del template)
             Alerts.AddSuccess(this, "Utente scollegato correttamente");
-            return RedirectToAction(MVC.Login.Login());
+            
+            // Torna alla pagina di Login pulita
+            return RedirectToAction("Login");
         }
     }
 }
