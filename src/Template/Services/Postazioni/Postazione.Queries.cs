@@ -1,19 +1,15 @@
-/*
- * FILE: Postazione.Queries.cs
- * SCOPO: Gestore Dati Unico.
- * Include: Eventi, Open Space, Team, Meeting E RISTORANTE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Template.Entities; // <--- 1. Importiamo le tue Entità (Postazione, Prenotazione)
+using Template.Data;     // <--- 2. Importiamo il DbContext
 
-namespace Template.Services.Shared
+namespace Template.Services.Postazioni // <--- 3. Namespace corretto
 {
     // ==========================================
-    // DTO PER LA MAPPA GENERALE
+    // DTO (Data Transfer Objects)
     // ==========================================
     public class MappaQuery { public DateTime Data { get; set; } }
 
@@ -30,17 +26,12 @@ namespace Template.Services.Shared
             public int Y { get; set; }
             public int Width { get; set; }
             public int Height { get; set; }
-            
-            // STATO
-            public bool IsOccupata { get; set; } // Rosso se True
-            public int PostiTotali { get; set; } // Capienza Max
-            public int PostiOccupati { get; set; } // Quanti sono già presi
+            public bool IsOccupata { get; set; }
+            public int PostiTotali { get; set; }
+            public int PostiOccupati { get; set; }
         }
     }
 
-    // ==========================================
-    // DTO PER IL RISTORANTE (AGGIUNTO)
-    // ==========================================
     public class RistoranteDTO
     {
         public IEnumerable<TavoloDTO> Tavoli { get; set; }
@@ -57,18 +48,30 @@ namespace Template.Services.Shared
         }
     }
 
-    public partial class SharedService
+    // ==========================================
+    // CLASSE QUERY (Gestisce la lettura dei dati)
+    // ==========================================
+    public class PostazioneQueries
     {
+        private readonly TemplateDbContext _dbContext;
+
+        // Costruttore: Inietta il database
+        public PostazioneQueries(TemplateDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
         // -----------------------------------------------------------------------
-        // METODO 1: QUERY GENERALE (Usata da PrenotazioneController)
+        // METODO 1: QUERY GENERALE (Mappa Uffici)
         // -----------------------------------------------------------------------
         public async Task<MappaDTO> Query(MappaQuery qry)
         {
-            await EnsureSeeding(); // Assicura che i dati esistano (con le tue coordinate)
+            await EnsureSeeding(); 
 
-            var postazioni = await _dbContext.Postazioni.Where(x => x.IsAbilitata).ToListAsync();
+            var postazioni = await _dbContext.Postazioni
+                .Where(x => x.IsAbilitata)
+                .ToListAsync();
             
-            // Recuperiamo tutte le prenotazioni di oggi
             var prenotazioniOggi = await _dbContext.Prenotazioni
                 .Where(x => x.DataPrenotazione.Date == qry.Data.Date)
                 .Select(x => x.PostazioneId) 
@@ -77,13 +80,10 @@ namespace Template.Services.Shared
             return new MappaDTO
             {
                 Postazioni = postazioni.Select(p => {
-                    // Contiamo quante volte appare questo ID nelle prenotazioni
                     int occupati = prenotazioniOggi.Count(id => id == p.Id);
                     int capienza = p.PostiTotali > 0 ? p.PostiTotali : 1;
 
-                    // Logica colore Rosso:
-                    // - Ristorante: Rosso solo se PIENO.
-                    // - Uffici: Rosso se c'è ALMENO UNA prenotazione.
+                    // Logica colore: Ristorante rosso se PIENO, Uffici rossi se occupati >= 1
                     bool isRed = (p.Tipo == "Ristorante") 
                                  ? occupati >= capienza 
                                  : occupati > 0;
@@ -104,7 +104,7 @@ namespace Template.Services.Shared
         }
 
         // -----------------------------------------------------------------------
-        // METODO 2: GET RISTORANTE (Usata da RistorazioneController) - AGGIUNTO
+        // METODO 2: GET RISTORANTE
         // -----------------------------------------------------------------------
         public async Task<RistoranteDTO> GetRistorante(DateTime date)
         {
@@ -137,33 +137,30 @@ namespace Template.Services.Shared
         }
 
         // -----------------------------------------------------------------------
-        // PRIVATE: SEEDING DATI (Coordinate ESATTE fornite da te)
+        // SEEDING DATI (Coordinate)
         // -----------------------------------------------------------------------
         private async Task EnsureSeeding()
         {
-            // Se ci sono già dati, non facciamo nulla
             if (await _dbContext.Postazioni.AnyAsync()) return;
 
             var lista = new List<Postazione>();
             int idCounter = 1;
 
-            // --- UFFICI E SALE ---
             // Sala Eventi
             lista.Add(new Postazione { CodiceUnivoco = "event-main", Nome = "Main Hall", Tipo = "Eventi", X = 35, Y = 30, Width = 350, Height = 250 });
 
-            // Open Space (15 posti: 5 righe x 3 colonne)
+            // Open Space
             AggiungiGruppo(lista, ref idCounter, "Desk", "Singola", startX: 570, startY: 30, rows: 5, cols: 3, width: 30, height: 30, gap: 20);
 
-            // Team Rooms (Capienza 6)
+            // Team Rooms
             lista.Add(new Postazione { CodiceUnivoco = "dev-1", Nome = "Team Alpha", Tipo = "Team", X = 250, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
             lista.Add(new Postazione { CodiceUnivoco = "dev-2", Nome = "Team Beta", Tipo = "Team", X = 450, Y = 470, Width = 120, Height = 80, PostiTotali = 6 });
 
-            // Sale Riunioni (Capienza 8)
+            // Sale Riunioni
             lista.Add(new Postazione { CodiceUnivoco = "meet-1", Nome = "Sala Red", Tipo = "Riunioni", X = 40, Y = 485, Width = 125, Height = 50, PostiTotali = 8 });
             lista.Add(new Postazione { CodiceUnivoco = "meet-2", Nome = "Sala Blue", Tipo = "Riunioni", X = 640, Y = 485, Width = 125, Height = 50, PostiTotali = 8 });
 
-            // --- RISTORANTE ---
-            // 3 Tavoli Rettangolari da 4 posti nel corridoio destro
+            // Ristorante
             for (int i = 0; i < 3; i++)
             {
                 lista.Add(new Postazione 
@@ -172,7 +169,7 @@ namespace Template.Services.Shared
                     Nome = $"Tavolo {i+1}", 
                     Tipo = "Ristorante", 
                     X = 820,              
-                    Y = 45 + (i * 115), // Spaziatura verticale modificata come da richiesta
+                    Y = 45 + (i * 115), 
                     Width = 100,
                     Height = 50,
                     PostiTotali = 4
@@ -185,7 +182,24 @@ namespace Template.Services.Shared
 
         private void AggiungiGruppo(List<Postazione> lista, ref int counter, string prefix, string tipo, int startX, int startY, int rows, int cols, int width, int height, int gap)
         {
-            for (int r = 0; r < rows; r++) { for (int c = 0; c < cols; c++) { lista.Add(new Postazione { CodiceUnivoco = $"{prefix}-{counter}", Nome = $"{prefix} {counter}", Tipo = tipo, X = startX + (c * (width + gap)), Y = startY + (r * (height + gap)), Width = width, Height = height, PostiTotali = 1 }); counter++; } }
+            for (int r = 0; r < rows; r++) 
+            { 
+                for (int c = 0; c < cols; c++) 
+                { 
+                    lista.Add(new Postazione 
+                    { 
+                        CodiceUnivoco = $"{prefix}-{counter}", 
+                        Nome = $"{prefix} {counter}", 
+                        Tipo = tipo, 
+                        X = startX + (c * (width + gap)), 
+                        Y = startY + (r * (height + gap)), 
+                        Width = width, 
+                        Height = height, 
+                        PostiTotali = 1 
+                    }); 
+                    counter++; 
+                } 
+            }
         }
     }
 }

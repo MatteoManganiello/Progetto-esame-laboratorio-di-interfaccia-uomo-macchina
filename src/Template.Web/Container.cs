@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Template.Services.Shared;
 using Template.Web.SignalR;
+
+// 1. IMPORTIAMO I NUOVI NAMESPACE
+using Template.Services.Utenti;
+using Template.Services.Prenotazioni;
 
 namespace Template.Web
 {
@@ -8,10 +11,14 @@ namespace Template.Web
     {
         public static void RegisterTypes(IServiceCollection container)
         {
-            // Registration of all the database services you have
-            container.AddScoped<SharedService>();
+            // 2. REGISTRIAMO I NUOVI SERVIZI
+            // Questi comandi dicono all'app: "Quando un controller chiede UserQueries, dagliene uno nuovo."
+            container.AddScoped<UserQueries>();
+            container.AddScoped<PrenotazioneService>();
 
-            // Registration of SignalR events
+            // (Abbiamo rimosso container.AddScoped<SharedService>(); perché non esiste più)
+
+            // Registration of SignalR events (Lasciamo invariato)
             container.AddScoped<IPublishDomainEvents, SignalrPublishDomainEvents>();
         }
     }

@@ -1,26 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; // Necessario per [Authorize]
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims; // Necessario per leggere l'ID utente
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Template.Services.Shared;
-using Template.Services;
-using Template.Web.Features.Prenotazione.Models; 
+
+// 1. NAMESPACE AGGIORNATI
+using Template.Data;                   // Per TemplateDbContext
+using Template.Entities;               // Per le Entità (Postazione, Prenotazione)
+using Template.Services.Prenotazioni;  // Per PrenotaRequest (che deve essere nella cartella Services/Prenotazioni)
 
 namespace Template.Web.Features.Prenotazione
 {
     [Authorize]
     public partial class PrenotazioneController : Controller
     {
-        private readonly SharedService _sharedService;
+        // 2. USIAMO IL DB CONTEXT DIRETTAMENTE
         private readonly TemplateDbContext _dbContext;
 
-        public PrenotazioneController(SharedService sharedService, TemplateDbContext dbContext)
+        public PrenotazioneController(TemplateDbContext dbContext)
         {
-            _sharedService = sharedService;
             _dbContext = dbContext;
         }
 
@@ -30,13 +31,28 @@ namespace Template.Web.Features.Prenotazione
         public virtual async Task<IActionResult> GetDatiMappa(DateTime? data)
         {
             var dataRichiesta = data ?? DateTime.Today;
-            
-            var risultato = await _sharedService.Query(new MappaQuery { Data = dataRichiesta });
 
-            var postazioniArricchite = risultato.Postazioni.Select(p => new
+            // Recuperiamo le postazioni e verifichiamo se sono occupate in quella data
+            var postazioniDb = await _dbContext.Postazioni
+                .Include(p => p.Prenotazioni)
+                .ToListAsync();
+
+            // Mappiamo i dati mantenendo ESATTAMENTE la tua logica di visualizzazione
+            var postazioniArricchite = postazioniDb.Select(p => new
             {
-                p.Id, p.Nome, p.Tipo, p.X, p.Y, p.Width, p.Height,
-                p.PostiTotali, p.PostiOccupati, p.IsOccupata,
+                p.Id, 
+                p.Nome, 
+                p.Tipo, 
+                p.X, 
+                p.Y, 
+                p.Width, 
+                p.Height,
+                p.PostiTotali,
+                // Calcolo dinamico se è occupata in base alla data richiesta
+                PostiOccupati = p.Prenotazioni.Count(pren => pren.DataPrenotazione.Date == dataRichiesta.Date),
+                IsOccupata = p.Prenotazioni.Any(pren => pren.DataPrenotazione.Date == dataRichiesta.Date),
+                
+                // Le tue funzioni originali (invariate)
                 MetriQuadri = CalcolaMq(p.Tipo, p.Id),
                 Haledwall = p.Tipo == "Eventi",
                 HaProiettore = p.Tipo == "Riunioni" || p.Tipo == "Team",
@@ -53,12 +69,11 @@ namespace Template.Web.Features.Prenotazione
             if (!ModelState.IsValid || request.PostazioniIds == null || !request.PostazioniIds.Any())
                 return BadRequest(new { success = false, message = "Selezionare almeno una postazione." });
 
-            // Recuperiamo l'ID reale dell'utente loggato
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity.Name ?? "Utente_Sconosciuto";
 
             try
             {
-                // 1. Controllo Conflitti
+                // 1. Controllo Conflitti (Logica invariata)
                 var conflitti = await _dbContext.Prenotazioni
                     .Where(p => request.PostazioniIds.Contains(p.PostazioneId) && p.DataPrenotazione.Date == request.Data.Date)
                     .Select(p => p.Postazione.Nome)
@@ -70,7 +85,7 @@ namespace Template.Web.Features.Prenotazione
                     return BadRequest(new { success = false, message = $"Già occupati: {nomi}." });
                 }
 
-                // 2. Recupero Entità dal DB
+                // 2. Recupero Entità dal DB (Logica invariata)
                 var postazioniDb = await _dbContext.Postazioni
                     .Where(p => request.PostazioniIds.Contains(p.Id))
                     .ToListAsync();
@@ -85,17 +100,18 @@ namespace Template.Web.Features.Prenotazione
                     if (request.NumeroPersone > capienzaMax)
                         return BadRequest(new { success = false, message = $"'{postazione.Nome}': max {capienzaMax} persone." });
 
-                    _dbContext.Prenotazioni.Add(new Template.Services.Shared.Prenotazione
+                    // Creiamo la nuova prenotazione usando l'Entità corretta
+                    _dbContext.Prenotazioni.Add(new Template.Entities.Prenotazione
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
-                        UserId = userId, // Salvataggio ID Reale
+                        UserId = userId,
                         NumeroPersone = request.NumeroPersone,
-                        DataCreazione = DateTime.Now
+                        DataCreazione = DateTime.UtcNow
                     });
                 }
 
-                // 4. Salvataggio (SENZA TRANSAZIONE per compatibilità InMemory)
+                // 4. Salvataggio
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = $"{request.PostazioniIds.Count} spazi prenotati!" });
@@ -105,6 +121,8 @@ namespace Template.Web.Features.Prenotazione
                 return StatusCode(500, new { success = false, message = "Errore server: " + ex.Message });
             }
         }
+
+        // --- FUNZIONI DI SUPPORTO (Intoccate) ---
 
         private static int CalcolaMq(string tipo, int id) => tipo switch
         {
@@ -132,4 +150,4 @@ namespace Template.Web.Features.Prenotazione
             };
         }
     }
-}
+}   

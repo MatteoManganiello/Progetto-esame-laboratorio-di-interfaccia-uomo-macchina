@@ -1,14 +1,12 @@
 using System;
 using System.Linq;
-using System.Threading; 
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data; 
-using Template.Services.Shared;
-using Template.Web.Features.Prenotazione.Models;
+using Template.Entities;
+using Template.Data;
 
-namespace Template.Web.Features.Prenotazione.Services
+namespace Template.Services.Prenotazioni
 {
     public class EsitoPrenotazione
     {
@@ -39,10 +37,6 @@ namespace Template.Web.Features.Prenotazione.Services
                  return new EsitoPrenotazione { Successo = false, Messaggio = "Non puoi prenotare nel passato." };
             }
 
-            // *** FIX QUI SOTTO ***
-            // Rimuoviamo l'argomento IsolationLevel.Serializable. 
-            // Usiamo il default del database (ReadCommitted), che evita l'errore di compilazione
-            // ed è sufficiente per prevenire i conflitti grazie ai controlli successivi.
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try
@@ -50,8 +44,7 @@ namespace Template.Web.Features.Prenotazione.Services
                 var postazioniOccupate = await _dbContext.Prenotazioni
                     .Where(p => request.PostazioniIds.Contains(p.PostazioneId)
                              && p.DataPrenotazione.Date == request.Data.Date
-                             // && !p.IsCancellata 
-                             )
+                             && !p.IsCancellata)
                     .Select(p => p.Postazione.Nome)
                     .ToListAsync();
 
@@ -79,20 +72,20 @@ namespace Template.Web.Features.Prenotazione.Services
                         return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione '{postazione.Nome}' non può ospitare {request.NumeroPersone} persone (Max: {capienzaMax})." };
                     }
 
-                    var nuovaPrenotazione = new Template.Services.Shared.Prenotazione
+                    var nuovaPrenotazione = new Prenotazione 
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
                         UserId = userId,
                         NumeroPersone = request.NumeroPersone, 
                         DataCreazione = DateTime.UtcNow,
+                        IsCancellata = false
                     };
 
                     _dbContext.Prenotazioni.Add(nuovaPrenotazione);
                 }
 
                 await _dbContext.SaveChangesAsync();
-                
                 await transaction.CommitAsync();
 
                 return new EsitoPrenotazione { Successo = true, Messaggio = $"{request.PostazioniIds.Count} spazi prenotati con successo!" };
@@ -102,7 +95,7 @@ namespace Template.Web.Features.Prenotazione.Services
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante la prenotazione multipla per User {UserId}", userId);
                 
-                return new EsitoPrenotazione { Successo = false, Messaggio = "Errore tecnico. Riprova tra un istante." };
+                return new EsitoPrenotazione { Successo = false, Messaggio = "Errore tecnico durante il salvataggio." };
             }
         }
     }

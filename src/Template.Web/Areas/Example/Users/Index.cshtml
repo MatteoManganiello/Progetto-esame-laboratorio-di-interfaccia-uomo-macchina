@@ -1,4 +1,5 @@
-﻿@inject IHtmlLocalizer<Template.Web.Areas.Example.Users.IndexViewModel> ModelLocalizer
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IHtmlLocalizer<Template.Web.Areas.Example.Users.IndexViewModel> ModelLocalizer
 @model Template.Web.Areas.Example.Users.IndexViewModel
 @{
     ViewData["Title"] = "Utenti";
@@ -41,7 +42,7 @@
                 </div>
 
                 <div class="col-sm-auto ms-auto mt-2 pt-2 d-flex flex-row">
-                    <partial name="@MVC.Shared.Views._PagingPartialFilter" model="Model" />
+                    <partial name="_PagingPartialFilter" model="Model" />
                 </div>
             </div>
         </form>
@@ -100,7 +101,7 @@
                         <tr>
                             <td colspan="3">
                                 <nav class="navbar navbar-expand justify-content-md-center">
-                                    <ul class="navbar-nav flex-wrap"><partial name="@MVC.Shared.Views._PagingPartial" model="Model" /></ul>
+                                    <ul class="navbar-nav flex-wrap"><partial name="_PagingPartial" model="Model" /></ul>
                                 </nav>
                             </td>
                         </tr>
