@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Template.Web.Features.Prenotazione.Models 
+namespace Template.Services.Prenotazioni // <--- Unico cambiamento: allineato alla cartella
 {
     public class PrenotaRequest
     {

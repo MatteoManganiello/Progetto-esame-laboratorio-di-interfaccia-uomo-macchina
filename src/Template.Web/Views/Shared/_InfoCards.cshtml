@@ -1,8 +1,9 @@
 <div v-if="!loading" class="row mt-4 mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-    
+
     <div class="col-lg-4 mb-4 mb-lg-0">
-        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-secondary bg-opacity-10">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-info bg-opacity-10">
+            <div
+                class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold text-dark mb-0">
                     <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Ultimi Ordini
                 </h6>
@@ -13,10 +14,13 @@
                     <small>Nessuna prenotazione recente.</small>
                 </div>
                 <div v-else class="list-group list-group-flush">
-                    <div v-for="(ordine, index) in storicoOrdini.slice(0, 4)" :key="index" class="list-group-item bg-transparent px-4 border-0 d-flex justify-content-between align-items-center mb-1">
+                    <div v-for="(ordine, index) in storicoOrdini.slice(0, 4)" :key="index"
+                        class="list-group-item bg-transparent px-4 border-0 d-flex justify-content-between align-items-center mb-1">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle p-2 me-3" :class="ordine.tipo === 'Ristorante' ? 'bg-warning bg-opacity-10 text-warning' : 'bg-info bg-opacity-10 text-info'">
-                                <i class="fa-solid" :class="ordine.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-desktop'"></i>
+                            <div class="rounded-circle p-2 me-3"
+                                :class="ordine.tipo === 'Ristorante' ? 'bg-warning bg-opacity-10 text-warning' : 'bg-info bg-opacity-10 text-info'">
+                                <i class="fa-solid"
+                                    :class="ordine.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-desktop'"></i>
                             </div>
                             <div>
                                 <div class="fw-bold text-dark small">{{ ordine.descrizione }}</div>
@@ -32,29 +36,30 @@
 
     <div class="col-lg-4 mb-4 mb-lg-0">
         <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-primary bg-opacity-25">
-            
+
             <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-bullhorn me-2 text-primary"></i>Novità in Azienda</h6>
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-bullhorn me-2 text-primary"></i>Novità in Azienda
+                </h6>
             </div>
-            
-            <div class="card-body custom-scroll" style="max-height: 250px; overflow-y: auto;">
-                <div v-for="(news, index) in novita" :key="index" class="mb-3 pb-3 border-bottom border-dark border-opacity-10 last-no-border">
+
+            <div class="card-body custom-scroll" style="max-height: 300px; overflow-y: auto;">
+                <div v-for="(news, index) in novita" :key="index"
+                    class="mb-3 pb-3 border-bottom border-dark border-opacity-10 last-no-border">
                     <span class="badge bg-primary text-white mb-2" style="font-size:0.7em">{{ news.data }}</span>
                     <h6 class="fw-bold mb-1 text-dark">{{ news.titolo }}</h6>
                     <p class="small text-dark opacity-75 mb-0" style="line-height: 1.4;">{{ news.contenuto }}</p>
                 </div>
             </div>
-            
-            <div class="card-footer bg-transparent border-0 pb-3 pt-0">
-                <button class="btn btn-sm btn-primary fw-bold w-100 rounded-pill">Leggi tutte le news</button>
-            </div>
+
         </div>
     </div>
 
     <div class="col-lg-4">
-        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-secondary bg-opacity-10">
+        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-success bg-opacity-10">
             <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-utensils text-success me-2"></i>Menù della Settimana</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-utensils text-success me-2"></i>Menù della
+                    Settimana</h6>
                 <small class="text-muted" style="font-size: 0.75em;">Chef: Giovanni Rana</small>
             </div>
             <div class="card-body px-0 pb-0">
@@ -62,7 +67,8 @@
                     <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent;">
                         <tbody class="small">
                             <tr v-for="(piatto, giorno) in menuSettimanale" :key="giorno">
-                                <td class="px-4 fw-bold text-muted text-uppercase" style="font-size:0.75rem; width: 30%;">{{ giorno }}</td>
+                                <td class="px-4 fw-bold text-muted text-uppercase"
+                                    style="font-size:0.75rem; width: 30%;">{{ giorno }}</td>
                                 <td class="text-dark fw-semibold">{{ piatto }}</td>
                             </tr>
                         </tbody>
@@ -70,10 +76,12 @@
                 </div>
             </div>
             <div class="card-footer bg-transparent border-0 p-3">
-                 <div class="alert alert-success bg-opacity-10 border-success border-opacity-25 d-flex align-items-center mb-0 p-2">
+                <div
+                    class="alert alert-success bg-opacity-10 border-success border-opacity-25 d-flex align-items-center mb-0 p-2">
                     <i class="fa-solid fa-leaf text-success me-2 fs-5"></i>
                     <div class="small text-dark lh-sm">
-                        Per alternative <strong>Vegane</strong> e <strong>Gluten Free</strong> rivolgersi al bancone del ristorante.
+                        Per alternative <strong>Vegane</strong> e <strong>Gluten Free</strong> rivolgersi al bancone del
+                        ristorante.
                     </div>
                 </div>
             </div>
@@ -83,10 +91,27 @@
 </div>
 
 <style>
-    .last-no-border:last-child { border-bottom: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    
-    .custom-scroll::-webkit-scrollbar { width: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 4px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
-    .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+    .last-no-border:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
 </style>

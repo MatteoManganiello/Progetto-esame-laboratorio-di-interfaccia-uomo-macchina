@@ -147,3 +147,14 @@
             align-items: center;
             gap: 8px;
         }
+
+             
+        .h-100-visual { height: 100%; min-height: 600px; }
+        .map-card, .sidebar-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+            padding: 15px;
+            height: 100%;
+        }

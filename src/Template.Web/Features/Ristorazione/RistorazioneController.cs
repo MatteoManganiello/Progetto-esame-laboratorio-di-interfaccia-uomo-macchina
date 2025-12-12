@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -6,20 +5,21 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Template.Services.Shared;
-using Template.Services;
+
+// 1. NAMESPACE AGGIORNATI
+using Template.Data;      // Per TemplateDbContext
+using Template.Entities;  // Per Prenotazione e Postazione
 
 namespace Template.Web.Features.Ristorazione
 {
     [Authorize]
     public partial class RistorazioneController : Controller
     {
-        private readonly SharedService _sharedService;
+        // 2. RIMOSSO SharedService (Non esiste più)
         private readonly TemplateDbContext _dbContext;
 
-        public RistorazioneController(SharedService sharedService, TemplateDbContext dbContext)
+        public RistorazioneController(TemplateDbContext dbContext)
         {
-            _sharedService = sharedService;
             _dbContext = dbContext;
         }
 
@@ -29,8 +29,22 @@ namespace Template.Web.Features.Ristorazione
         public virtual async Task<IActionResult> GetTavoli(DateTime? data)
         {
             var dataRichiesta = data ?? DateTime.Today;
-            var result = await _sharedService.GetRistorante(dataRichiesta);
-            return Json(result.Tavoli);
+
+            // 3. FIX: Sostituito _sharedService.GetRistorante con query diretta
+            // Recuperiamo i tavoli (Postazioni di tipo Ristorante)
+            var tavoli = await _dbContext.Postazioni
+                .Where(p => p.Tipo == "Ristorante")
+                .Select(p => new 
+                {
+                    p.Id,
+                    p.Nome,
+                    // Calcoliamo i posti occupati per quella data
+                    PostiOccupati = p.Prenotazioni.Count(pren => pren.DataPrenotazione.Date == dataRichiesta.Date),
+                    PostiTotali = 4 // Assumiamo 4 come da tua logica sotto
+                })
+                .ToListAsync();
+
+            return Json(tavoli);
         }
 
         [HttpPost]
@@ -41,7 +55,7 @@ namespace Template.Web.Features.Ristorazione
                 // Recuperiamo l'ID reale dell'utente
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity.Name ?? "Utente_Sconosciuto";
 
-                // 1. REGOLA: HAI UNA SCRIVANIA?
+                // 1. REGOLA: HAI UNA SCRIVANIA? (Logica invariata)
                 var haScrivania = await _dbContext.Prenotazioni
                     .Include(p => p.Postazione)
                     .AnyAsync(p =>
@@ -56,7 +70,7 @@ namespace Template.Web.Features.Ristorazione
                 //      return BadRequest(new { success = false, message = "Devi prenotare una scrivania prima di poter prenotare il pranzo!" });
                 // }
 
-                // 2. REGOLA: CONTROLLO POSTI
+                // 2. REGOLA: CONTROLLO POSTI (Logica invariata)
                 var postiGiaOccupati = await _dbContext.Prenotazioni
                     .CountAsync(p => p.PostazioneId == request.PostazioneId && p.DataPrenotazione.Date == request.Data.Date);
 
@@ -65,10 +79,11 @@ namespace Template.Web.Features.Ristorazione
                     return BadRequest(new { success = false, message = $"Posti insufficienti! Rimasti: {4 - postiGiaOccupati}" });
                 }
 
-                // 3. SALVATAGGIO
+                // 3. SALVATAGGIO (Logica invariata)
                 for (int i = 0; i < request.NumeroPosti; i++)
                 {
-                    _dbContext.Prenotazioni.Add(new Template.Services.Shared.Prenotazione
+                    // 4. FIX: Usiamo la nuova Entità Template.Entities.Prenotazione
+                    _dbContext.Prenotazioni.Add(new Template.Entities.Prenotazione
                     {
                         PostazioneId = request.PostazioneId,
                         DataPrenotazione = request.Data,
@@ -77,7 +92,7 @@ namespace Template.Web.Features.Ristorazione
                     });
                 }
 
-                // Salvataggio senza transazione (compatibile con InMemory DB)
+                // Salvataggio
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = $"Prenotazione ristorante confermata per {request.NumeroPosti} persone!" });

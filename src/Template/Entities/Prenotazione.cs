@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Template.Services.Shared
+namespace Template.Entities
 {
     [Table("Prenotazioni")]
     public class Prenotazione

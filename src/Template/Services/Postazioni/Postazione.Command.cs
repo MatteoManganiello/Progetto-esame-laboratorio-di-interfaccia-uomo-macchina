@@ -2,25 +2,35 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace Template.Services.Shared
+// 1. IMPORTIAMO I NUOVI NAMESPACE
+using Template.Data;      // Per il DbContext
+using Template.Entities;  // Per l'entità Prenotazione e Postazione
+
+namespace Template.Services.Prenotazioni // 2. Namespace coerente con gli altri servizi
 {
-    // 1. IL "PACCHETTO" DI DATI IN INGRESSO
-    // Questo è l'oggetto che contiene le info necessarie per prenotare
+    // IL "PACCHETTO" DI DATI IN INGRESSO
     public class PrenotaPostazioneCommand
     {
         public int PostazioneId { get; set; }
         public DateTime Data { get; set; }
-        public Guid UserId { get; set; } // L'ID dell'utente che sta facendo l'azione
+        public Guid UserId { get; set; }
     }
 
-    // 2. LA LOGICA (Estensione di SharedService)
-    public partial class SharedService
+    // 3. LA LOGICA (Non è più partial class SharedService, ma una classe autonoma)
+    public class PostazioneCommandService
     {
+        private readonly TemplateDbContext _dbContext;
+
+        // Costruttore per iniettare il Database
+        public PostazioneCommandService(TemplateDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
         /// <summary>
-        /// Effettua la prenotazione salvandola nel database.
-        /// Se il posto è occupato o non esiste, lancia un'eccezione.
+        /// Effettua la prenotazione singola salvandola nel database.
         /// </summary>
-        public async Task<bool> Command(PrenotaPostazioneCommand cmd)
+        public async Task<bool> EseguiPrenotazioneAsync(PrenotaPostazioneCommand cmd)
         {
             // A. VALIDAZIONE: Il posto esiste davvero?
             var postazione = await _dbContext.Postazioni.FindAsync(cmd.PostazioneId);
@@ -29,9 +39,7 @@ namespace Template.Services.Shared
                 throw new Exception("Errore: La postazione richiesta non esiste.");
             }
 
-            // B. CONTROLLO CONFLITTI: È già occupato in quella data?
-            // Cerchiamo nella tabella Prenotazioni se c'è già una riga con:
-            // Stessa Postazione AND Stessa Data
+            // B. CONTROLLO CONFLITTI
             var isOccupata = await _dbContext.Prenotazioni
                 .AnyAsync(p => p.PostazioneId == cmd.PostazioneId && p.DataPrenotazione.Date == cmd.Data.Date);
 
@@ -40,18 +48,17 @@ namespace Template.Services.Shared
                 throw new Exception("Spiacente, questa postazione è già prenotata per la data selezionata.");
             }
 
-            // C. SALVATAGGIO
-            // Se siamo arrivati qui, è tutto ok. Creiamo la nuova prenotazione.
+            // C. SALVATAGGIO (Usando la nuova entità Template.Entities.Prenotazione)
             var nuovaPrenotazione = new Prenotazione
             {
                 PostazioneId = cmd.PostazioneId,
                 DataPrenotazione = cmd.Data,
-                UserId = cmd.UserId.ToString() // Salviamo l'ID utente come stringa
+                UserId = cmd.UserId.ToString(),
+                DataCreazione = DateTime.UtcNow // Meglio UtcNow
             };
 
             _dbContext.Prenotazioni.Add(nuovaPrenotazione);
             
-            // Questo è il comando che scrive fisicamente nel Database
             await _dbContext.SaveChangesAsync();
 
             return true;

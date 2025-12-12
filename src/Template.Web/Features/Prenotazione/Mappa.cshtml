@@ -8,166 +8,184 @@
 
     <link rel="stylesheet" href="~/css/seatmap.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
+    
 }
 
 <div id="app-prenotazione" class="container-fluid py-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="mb-4">
+        <partial name="_StatsCards" />
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Prenotazione Spazi</h4>
         <div class="bg-white p-2 rounded border shadow-sm">
             <input type="date" class="form-control border-0 fw-bold p-0" style="width: 130px" v-model="dataSelezionata"
                 v-on:change="caricaDatiMappa">
         </div>
     </div>
 
-    <div class="seatmap-wrapper">
-        <div class="map-area">
+    <div class="row g-4">
+        
+        <div class="col-lg-9">
+            <div class="map-card">
+                <div class="map-area" style="position: relative; height: 100%;">
 
-            <div v-if="tooltip.visibile" class="custom-tooltip"
-                :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
+                    <div v-if="tooltip.visibile" class="custom-tooltip"
+                        :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
 
-                <div class="fw-bold text-warning mb-2"
-                    style="font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px;">
-                    {{ tooltip.dati.nome }}
-                </div>
+                        <div class="fw-bold text-warning mb-2"
+                            style="font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px;">
+                            {{ tooltip.dati.nome }}
+                        </div>
 
-                <div class="tooltip-row mb-2">
-                    <span class="badge bg-light text-dark border" style="font-size:0.7em">{{ tooltip.dati.tipo }}</span>
+                        <div class="tooltip-row mb-2">
+                            <span class="badge bg-light text-dark border" style="font-size:0.7em">{{ tooltip.dati.tipo }}</span>
 
-                    <span v-if="tooltip.dati.tipo === 'Ristorante'">
-                        <i class="fa-solid fa-utensils text-info"></i> {{ tooltip.dati.postiOccupati }}/{{
-                        tooltip.dati.postiTotali }}
-                    </span>
-                    <span v-else>
-                        <span v-if="tooltip.dati.isOccupata" class="text-danger fw-bold">
-                            <i class="fa-solid fa-xmark"></i> Occupato
-                        </span>
-                        <span v-else class="text-success fw-bold">
-                            <i class="fa-solid fa-check"></i> Libero
-                        </span>
-                    </span>
-                </div>
+                            <span v-if="tooltip.dati.tipo === 'Ristorante'">
+                                <i class="fa-solid fa-utensils text-info"></i> {{ tooltip.dati.postiOccupati }}/{{
+                                tooltip.dati.postiTotali }}
+                            </span>
+                            <span v-else>
+                                <span v-if="tooltip.dati.isOccupata" class="text-danger fw-bold">
+                                    <i class="fa-solid fa-xmark"></i> Occupato
+                                </span>
+                                <span v-else class="text-success fw-bold">
+                                    <i class="fa-solid fa-check"></i> Libero
+                                </span>
+                            </span>
+                        </div>
 
-                <div v-if="tooltip.dati.metriQuadri || tooltip.dati.descrizione || tooltip.dati.haProiettore"
-                    class="mt-2 pt-2 text-light opacity-75 small" style="border-top: 1px dashed rgba(255,255,255,0.2);">
+                        <div v-if="tooltip.dati.metriQuadri || tooltip.dati.descrizione || tooltip.dati.haProiettore"
+                            class="mt-2 pt-2 text-light opacity-75 small" style="border-top: 1px dashed rgba(255,255,255,0.2);">
 
-                    <div v-if="tooltip.dati.metriQuadri" class="d-flex align-items-center gap-2 mb-1">
-                        <i class="fa-solid fa-ruler-combined"></i>
-                        <span>{{ tooltip.dati.metriQuadri }} m²</span>
+                            <div v-if="tooltip.dati.metriQuadri" class="d-flex align-items-center gap-2 mb-1">
+                                <i class="fa-solid fa-ruler-combined"></i>
+                                <span>{{ tooltip.dati.metriQuadri }} m²</span>
+                            </div>
+
+                            <div v-if="tooltip.dati.haProiettore || tooltip.dati.haFinestre"
+                                class="d-flex gap-3 mt-1 align-items-center">
+
+                                <span v-if="tooltip.dati.haledwall" title="Ledwall">
+                                    <i class="fa-solid fa-video me-1"></i> LED WALL
+                                </span>
+
+                                <span v-if="tooltip.dati.haProiettore" title="Lavagna">
+                                    <i class="fa-solid fa-video me-1"></i> LAVAGNA INTERATTIVA
+                                </span>
+                                <span v-if="tooltip.dati.haFinestre" title="Luce Naturale">
+                                    <i class="fa-regular fa-sun me-1"></i> Finestra
+                                </span>
+                            </div>
+
+                            <div v-if="tooltip.dati.descrizione" class="mt-2 fst-italic text-white-50"
+                                style="white-space: normal; max-width: 200px; line-height: 1.2;">
+                                {{ tooltip.dati.descrizione }}
+                            </div>
+                        </div>
                     </div>
 
-                    <div v-if="tooltip.dati.haProiettore || tooltip.dati.haFinestre"
-                        class="d-flex gap-3 mt-1 align-items-center">
-
-                        <span v-if="tooltip.dati.haledwall" title="Ledwall">
-                            <i class="fa-solid fa-video me-1"></i> LED WALL
-                        </span>
-
-                        <span v-if="tooltip.dati.haProiettore" title="Lavagna">
-                            <i class="fa-solid fa-video me-1"></i> LAVAGNA INTERATTIVA
-                        </span>
-                        <span v-if="tooltip.dati.haFinestre" title="Luce Naturale">
-                            <i class="fa-regular fa-sun me-1"></i> Finestra
-                        </span>
+                    <div v-if="loading" class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-primary"></div>
                     </div>
 
-                    <div v-if="tooltip.dati.descrizione" class="mt-2 fst-italic text-white-50"
-                        style="white-space: normal; max-width: 200px; line-height: 1.2;">
-                        {{ tooltip.dati.descrizione }}
-                    </div>
+                    <svg v-else viewBox="0 0 1000 600" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <path id="office-chair"
+                                d="M4,18 C4,20 16,20 16,18 L16,14 C16,8 4,8 4,14 Z M2,14 C2,6 18,6 18,14 L18,16 C20,16 20,20 18,20 L2,20 C0,20 0,16 2,16 Z"
+                                class="chair-shape" />
+                        </defs>
+
+                        <image href="/images/piantina-base.png" x="0" y="0" width="1000" height="600" preserveAspectRatio="none"
+                            style="opacity: 0.6; filter: grayscale(30%);" />
+
+                        <text x="850" y="520" class="map-label" transform="rotate(90, 960, 300)" style="font-size:18px">DESK
+                            ROOM</text>
+                        <text x="850" y="800" class="map-label" transform="rotate(90, 960, 300)" style="font-size:18px">SALA
+                            EVENTI</text>
+                        <text x="700" y="380" class="map-label">MEETING</text>
+                        <text x="310" y="380" class="map-label">DEV TEAM</text>
+                        <text x="513" y="380" class="map-label">DEV TEAM</text>
+                        <text x="103" y="380" class="map-label">MEETING</text>
+                        <text x="960" y="300" class="map-label" transform="rotate(90, 960, 300)"
+                            style="font-size:18px">RISTORANTE</text>
+
+                        <g v-for="p in postazioni" :key="p.id" class="seat-group"
+                            :class="getStatoClasse(p) + ' type-' + p.tipo.toLowerCase()" v-on:click="selezionaPostazione(p)"
+                            @@mouseenter="mostraTooltip(p, $event)" @@mousemove="muoviTooltip($event)"
+                            @@mouseleave="nascondiTooltip">
+
+                            <g v-if="p.tipo === 'Singola'">
+                                <use href="#office-chair" :x="p.x+5" :y="p.y+20" />
+                                <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="3" class="desk-shape" />
+                            </g>
+                            <g v-else-if="p.tipo === 'Team'">
+                                <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="6" class="desk-shape" />
+                                <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="12" fill="#adb5bd"
+                                    text-anchor="middle" font-weight="bold" style="pointer-events:none">TEAM</text>
+                                <use href="#office-chair" :x="p.x+20" :y="p.y-20"
+                                    :transform="`rotate(180, ${p.x+30}, ${p.y-10})`" />
+                                <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y-20"
+                                    :transform="`rotate(180, ${p.x+p.width/2}, ${p.y-10})`" />
+                                <use href="#office-chair" :x="p.x+p.width-40" :y="p.y-20"
+                                    :transform="`rotate(180, ${p.x+p.width-30}, ${p.y-10})`" />
+                                <use href="#office-chair" :x="p.x+20" :y="p.y+p.height" />
+                                <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y+p.height" />
+                                <use href="#office-chair" :x="p.x+p.width-40" :y="p.y+p.height" />
+                            </g>
+                            <g v-else-if="p.tipo === 'Riunioni'">
+                                <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="20" class="desk-shape" />
+                                <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="11" fill="#adb5bd"
+                                    text-anchor="middle" font-weight="bold" style="pointer-events:none">MEET</text>
+                                <use href="#office-chair" :x="p.x+20" :y="p.y-20"
+                                    :transform="`rotate(180, ${p.x+30}, ${p.y-10})`" />
+                                <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y-20"
+                                    :transform="`rotate(180, ${p.x+p.width/2}, ${p.y-10})`" />
+                                <use href="#office-chair" :x="p.x+p.width-40" :y="p.y-20"
+                                    :transform="`rotate(180, ${p.x+p.width-30}, ${p.y-10})`" />
+                                <use href="#office-chair" :x="p.x+20" :y="p.y+p.height" />
+                                <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y+p.height" />
+                                <use href="#office-chair" :x="p.x+p.width-40" :y="p.y+p.height" />
+                            </g>
+                            <g v-else-if="p.tipo === 'Eventi'">
+                                <rect :x="p.x" :y="p.y + 10" width="350" height="30" fill="#343a40" rx="2" />
+                                <text :x="p.x + 175" :y="p.y + 30" font-size="12" fill="white" text-anchor="middle"
+                                    font-weight="bold" style="pointer-events:none; letter-spacing: 1px;">LED WALL</text>
+                                <rect :x="p.x" :y="p.y+60" :width="p.width" :height="p.height-60" fill="white"
+                                    class="platea-shape" rx="4" />
+                                <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 30" font-size="14" fill="#adb5bd"
+                                    text-anchor="middle" font-weight="bold">PLATEA</text>
+                            </g>
+                            <g v-else-if="p.tipo === 'Ristorante'">
+                                <use href="#office-chair" :x="p.x + 30" :y="p.y - 20"
+                                    :transform="`rotate(180, ${p.x + 30}, ${p.y - 10})`" />
+                                <use href="#office-chair" :x="p.x + 70" :y="p.y - 20"
+                                    :transform="`rotate(180, ${p.x + 80}, ${p.y - 10})`" />
+                                <use href="#office-chair" :x="p.x + 10" :y="p.y + p.height" />
+                                <use href="#office-chair" :x="p.x + 70" :y="p.y + p.height" />
+                                <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="4" class="desk-shape" />
+                                <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" text-anchor="middle" font-size="12"
+                                    fill="#adb5bd" font-weight="bold" style="pointer-events:none">
+                                    {{ p.postiTotali - p.postiOccupati }}/{{ p.postiTotali }}
+                                </text>
+                            </g>
+                        </g>
+                    </svg>
                 </div>
             </div>
-            <div v-if="loading" class="spinner-border text-primary m-5"></div>
-
-            <svg v-else viewBox="0 0 1000 600" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                    <path id="office-chair"
-                        d="M4,18 C4,20 16,20 16,18 L16,14 C16,8 4,8 4,14 Z M2,14 C2,6 18,6 18,14 L18,16 C20,16 20,20 18,20 L2,20 C0,20 0,16 2,16 Z"
-                        class="chair-shape" />
-                </defs>
-
-                <image href="/images/piantina-base.png" x="0" y="0" width="1000" height="600" preserveAspectRatio="none"
-                    style="opacity: 0.6; filter: grayscale(30%);" />
-
-                <text x="850" y="520" class="map-label" transform="rotate(90, 960, 300)" style="font-size:18px">DESK
-                    ROOM</text>
-                <text x="850" y="800" class="map-label" transform="rotate(90, 960, 300)" style="font-size:18px">SALA
-                    EVENTI</text>
-                <text x="700" y="380" class="map-label">MEETING</text>
-                <text x="310" y="380" class="map-label">DEV TEAM</text>
-                <text x="513" y="380" class="map-label">DEV TEAM</text>
-                <text x="103" y="380" class="map-label">MEETING</text>
-                <text x="960" y="300" class="map-label" transform="rotate(90, 960, 300)"
-                    style="font-size:18px">RISTORANTE</text>
-
-                <g v-for="p in postazioni" :key="p.id" class="seat-group"
-                    :class="getStatoClasse(p) + ' type-' + p.tipo.toLowerCase()" v-on:click="selezionaPostazione(p)"
-                    @@mouseenter="mostraTooltip(p, $event)" @@mousemove="muoviTooltip($event)"
-                    @@mouseleave="nascondiTooltip">
-
-                    <g v-if="p.tipo === 'Singola'">
-                        <use href="#office-chair" :x="p.x+5" :y="p.y+20" />
-                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="3" class="desk-shape" />
-                    </g>
-                    <g v-else-if="p.tipo === 'Team'">
-                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="6" class="desk-shape" />
-                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="12" fill="#adb5bd"
-                            text-anchor="middle" font-weight="bold" style="pointer-events:none">TEAM</text>
-                        <use href="#office-chair" :x="p.x+20" :y="p.y-20"
-                            :transform="`rotate(180, ${p.x+30}, ${p.y-10})`" />
-                        <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y-20"
-                            :transform="`rotate(180, ${p.x+p.width/2}, ${p.y-10})`" />
-                        <use href="#office-chair" :x="p.x+p.width-40" :y="p.y-20"
-                            :transform="`rotate(180, ${p.x+p.width-30}, ${p.y-10})`" />
-                        <use href="#office-chair" :x="p.x+20" :y="p.y+p.height" />
-                        <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y+p.height" />
-                        <use href="#office-chair" :x="p.x+p.width-40" :y="p.y+p.height" />
-                    </g>
-                    <g v-else-if="p.tipo === 'Riunioni'">
-                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="20" class="desk-shape" />
-                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="11" fill="#adb5bd"
-                            text-anchor="middle" font-weight="bold" style="pointer-events:none">MEET</text>
-                        <use href="#office-chair" :x="p.x+20" :y="p.y-20"
-                            :transform="`rotate(180, ${p.x+30}, ${p.y-10})`" />
-                        <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y-20"
-                            :transform="`rotate(180, ${p.x+p.width/2}, ${p.y-10})`" />
-                        <use href="#office-chair" :x="p.x+p.width-40" :y="p.y-20"
-                            :transform="`rotate(180, ${p.x+p.width-30}, ${p.y-10})`" />
-                        <use href="#office-chair" :x="p.x+20" :y="p.y+p.height" />
-                        <use href="#office-chair" :x="p.x+p.width/2-10" :y="p.y+p.height" />
-                        <use href="#office-chair" :x="p.x+p.width-40" :y="p.y+p.height" />
-                    </g>
-                    <g v-else-if="p.tipo === 'Eventi'">
-                        <rect :x="p.x" :y="p.y + 10" width="350" height="30" fill="#343a40" rx="2" />
-                        <text :x="p.x + 175" :y="p.y + 30" font-size="12" fill="white" text-anchor="middle"
-                            font-weight="bold" style="pointer-events:none; letter-spacing: 1px;">LED WALL</text>
-                        <rect :x="p.x" :y="p.y+60" :width="p.width" :height="p.height-60" fill="white"
-                            class="platea-shape" rx="4" />
-                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 30" font-size="14" fill="#adb5bd"
-                            text-anchor="middle" font-weight="bold">PLATEA</text>
-                    </g>
-                    <g v-else-if="p.tipo === 'Ristorante'">
-                        <use href="#office-chair" :x="p.x + 30" :y="p.y - 20"
-                            :transform="`rotate(180, ${p.x + 30}, ${p.y - 10})`" />
-                        <use href="#office-chair" :x="p.x + 70" :y="p.y - 20"
-                            :transform="`rotate(180, ${p.x + 80}, ${p.y - 10})`" />
-                        <use href="#office-chair" :x="p.x + 10" :y="p.y + p.height" />
-                        <use href="#office-chair" :x="p.x + 70" :y="p.y + p.height" />
-                        <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="4" class="desk-shape" />
-                        <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" text-anchor="middle" font-size="12"
-                            fill="#adb5bd" font-weight="bold" style="pointer-events:none">
-                            {{ p.postiTotali - p.postiOccupati }}/{{ p.postiTotali }}
-                        </text>
-                    </g>
-                </g>
-            </svg>
         </div>
 
-        <partial name="Sidebar" />
+        <div class="col-lg-3">
+            <div class="sidebar-card">
+                <partial name="Sidebar" />
+            </div>
+        </div>
     </div>
 
-    <partial name="_StatsCards" />
-
-    <partial name="_InfoCards" />
+    <div class="mt-4">
+        <partial name="_InfoCards" />
+    </div>
 
 </div>
 
@@ -184,7 +202,7 @@
                     numeroPostiRichiesti: 1,
                     tooltip: { visibile: false, dati: null, x: 0, y: 0 },
 
-                    // --- NUOVI DATI PER LE CARD INFORMATIVE ---
+                    // --- DATI CARD INFORMATIVE ---
                     storicoOrdini: [
                         { data: 'Ieri', descrizione: 'Desk 5 - Singola', tipo: 'Singola', prezzo: 25 },
                         { data: '05 Dic', descrizione: 'Pranzo x2 Persone', tipo: 'Ristorante', prezzo: 30 },
@@ -204,7 +222,6 @@
                 }
             },
 
-            // --- FIX: LOGICA CALCOLO IBRIDA (Sedie vs Unità) ---
             computed: {
                 stats() {
                     if (!this.postazioni || this.postazioni.length === 0) {
@@ -216,11 +233,9 @@
 
                     this.postazioni.forEach(p => {
                         if (p.tipo === 'Ristorante') {
-                            // RISTORANTE: Contiamo i singoli posti (es. 4 sedie)
                             totali += p.postiTotali;
                             occupati += p.postiOccupati;
                         } else {
-                            // UFFICI/SALE: Contiamo l'UNITÀ immobiliare (1 prenotazione = 1 spazio occupato)
                             totali += 1;
                             occupati += (p.isOccupata ? 1 : 0);
                         }
@@ -259,24 +274,29 @@
                 },
                 confermaPrenotazione() {
                     this.loadingBtn = true;
-                    let url = '/Prenotazione/Prenota';
-                    let payload = { postazioneId: this.postazioneSelezionata.id, data: this.dataSelezionata };
 
-                    if (this.postazioneSelezionata.tipo === 'Ristorante') {
-                        url = '/Ristorazione/PrenotaTavolo';
-                        payload.numeroPosti = this.numeroPostiRichiesti;
-                    }
+                    // 1. URL UNICO: Usiamo sempre Prenotazione/Prenota (che abbiamo sistemato prima)
+                    let url = '/Prenotazione/Prenota';
+
+                    // 2. PAYLOAD CORRETTO: Il server vuole una LISTA (array) di ID, non un ID singolo.
+                    let payload = {
+                        PostazioniIds: [this.postazioneSelezionata.id], // <--- Nota le parentesi quadre []
+                        Data: this.dataSelezionata,
+                        NumeroPersone: parseInt(this.numeroPostiRichiesti) // Assicuriamoci sia un numero
+                    };
 
                     fetch(url, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     }).then(async r => {
                         this.loadingBtn = false;
                         const res = await r.json();
+
                         if (r.ok) {
                             alert("✅ " + res.message);
 
-                            // Aggiorno Storico
+                            // Aggiorno le statistiche locali per bellezza
                             this.storicoOrdini.unshift({
                                 data: 'Adesso',
                                 descrizione: this.postazioneSelezionata.nome,
@@ -284,10 +304,16 @@
                                 prezzo: this.getPrezzoTotale()
                             });
 
+                            // Ricarico la mappa per vedere il rosso
                             this.caricaDatiMappa();
+                            this.postazioneSelezionata = null; // Chiudo la sidebar
                         } else {
-                            alert("❌ " + res.message);
+                            alert("❌ Errore: " + (res.message || "Qualcosa è andato storto"));
                         }
+                    }).catch(err => {
+                        this.loadingBtn = false;
+                        console.error(err);
+                        alert("❌ Errore di connessione al server.");
                     });
                 },
 

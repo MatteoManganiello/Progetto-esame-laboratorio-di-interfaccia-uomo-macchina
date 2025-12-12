@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Template.Services;
 using Template.Web.Infrastructure;
 using Template.Web.SignalR.Hubs;
 
-// --- NAMESPACE NECESSARI ---
-using Template.Services.Shared; // Per SharedService
-using Template.Web.Features.Prenotazione.Services; // Per PrenotazioneService
+// --- NAMESPACE CORRETTI ---
+using Template.Data;                   // Per TemplateDbContext
+using Template.Services.Utenti;        // Per UserQueries
+using Template.Services.Prenotazioni;  // Per PrenotazioneService
 
 namespace Template.Web
 {
@@ -35,6 +35,7 @@ namespace Template.Web
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             // 1. DATABASE
+            // Usiamo InMemory per l'esame.
             services.AddDbContext<TemplateDbContext>(options =>
             {
                 options.UseInMemoryDatabase(databaseName: "Template");
@@ -43,21 +44,24 @@ namespace Template.Web
             // 2. REGISTRAZIONE SERVIZI (Dependency Injection)
             // ==============================================================
             
-            // A. SharedService (Fondamentale per la mappa e i controller)
-            services.AddScoped<SharedService>();
+            // A. UserQueries (Per Login e Gestione Utenti)
+            services.AddScoped<UserQueries>();
 
-            // B. PrenotazioneService (Logica prenotazioni multiple)
+            // B. PrenotazioneService (Per Logica Prenotazioni)
             services.AddScoped<PrenotazioneService>();
             
+            // Nota: SharedService è stato rimosso definitivamente.
             // ==============================================================
 
-            // SERVICES FOR AUTHENTICATION
+            // SERVIZI DI AUTENTICAZIONE
             services.AddSession();
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
-            {
-                options.LoginPath = "/Login/Login";
-                options.LogoutPath = "/Login/Logout";
-            });
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Login/Login";
+                    options.LogoutPath = "/Login/Logout";
+                    options.AccessDeniedPath = "/Home/Error";
+                });
 
             var builder = services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
@@ -87,6 +91,8 @@ namespace Template.Web
             });
 
             services.AddSignalR();
+            
+            // Registra eventuali altri tipi definiti in Container.cs
             Container.RegisterTypes(services);
         }
 
@@ -100,10 +106,14 @@ namespace Template.Web
             }
 
             app.UseRequestLocalization(SupportedCultures.CultureNames);
+            
+            // --- ORDINE FONDAMENTALE DEI MIDDLEWARE ---
             app.UseRouting();
             app.UseSession();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            
+            app.UseAuthentication(); // 1. Chi sei?
+            app.UseAuthorization();  // 2. Puoi entrare?
+            // ------------------------------------------
 
             var node_modules = new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "node_modules");
             var areas = new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "Areas");
@@ -114,9 +124,10 @@ namespace Template.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<TemplateHub>("/templateHub");
+                
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
 
-                // Default route sulla Mappa Prenotazioni
+                // Default route che punta alla Mappa
                 endpoints.MapControllerRoute(
                     name: "default", 
                     pattern: "{controller=Prenotazione}/{action=Mappa}/{id?}");
