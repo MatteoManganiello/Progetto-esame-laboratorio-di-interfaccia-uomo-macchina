@@ -1,13 +1,19 @@
+@section styles {
+
+    <link rel="stylesheet" href="~/css/infocards.css" asp-append-version="true" />
+
+}
+
 <div v-if="!loading" class="row mt-4 mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
 
     <div class="col-lg-4 mb-4 mb-lg-0">
-        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-info bg-opacity-10">
+        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-warning bg-opacity-10">
             <div
                 class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Ultimi Ordini
+                    <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Ultimi Ordini
                 </h6>
-                <span class="badge bg-primary rounded-pill">{{ storicoOrdini.length }}</span>
+                <span class="badge bg-warning rounded-pill">{{ storicoOrdini.length }}</span>
             </div>
             <div class="card-body px-0">
                 <div v-if="storicoOrdini.length === 0" class="text-center text-muted py-4">
@@ -89,29 +95,3 @@
     </div>
 
 </div>
-
-<style>
-    .last-no-border:last-child {
-        border-bottom: none !important;
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    .custom-scroll::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 4px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 4px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.3);
-    }
-</style>
