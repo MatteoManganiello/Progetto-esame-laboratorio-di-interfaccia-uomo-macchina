@@ -1,6 +1,5 @@
 .sidebar-area {
     background-color: #ffffff;
-    border-left: 1px solid #b9b9b9;
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.03);
     padding: 2rem;
     display: flex;
@@ -82,12 +81,13 @@
     letter-spacing: 1px;
 }
 
-@media (max-width: 991px) {
+@media (max-width: 900px) {
     .sidebar-area {
         border-left: none;
         border-top: 1px solid #e9ecef;
         box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-        min-height: auto;
+        
+   
     }
 }
 
@@ -131,4 +131,52 @@
 
 .legend-indicator.bg-danger {
     background-color: #dc3545 !important;
+}
+
+/* Contenitore principale della cornice */
+.brand-video-frame {
+    position: relative;
+    /* Questo padding determina lo spessore della cornice colorata (es. 5px) */
+    padding: 5px;
+    /* Arrotondamento esterno della cornice */
+    border-radius: 16px;
+    /* Assicura che il background dietro il video sia bianco */
+    background: #ffffff;
+    /* Un'ombra leggera per dare profondità */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    /* Importante per far funzionare i bordi arrotondati */
+    z-index: 1;
+    display: inline-block; /* O block, a seconda del layout */
+}
+
+/* L'elemento magico che crea il gradiente */
+.brand-video-frame::before {
+    content: '';
+    position: absolute;
+    /* Occupa tutto lo spazio del contenitore */
+    inset: 0;
+    /* Va dietro al contenuto video */
+    z-index: -1;
+    /* Eredita l'arrotondamento */
+    border-radius: inherit;
+    /* IL GRADIENTE CONICO con i 4 colori */
+    background: conic-gradient(
+        from 0deg at 50% 50%,
+        #0d6efd 0%,   /* Blu (Bootstrap Primary) */
+        #dc3545 25%,  /* Rosso (Bootstrap Danger) */
+        #198754 50%,  /* Verde (Bootstrap Success) */
+        #ffc107 75%,  /* Giallo (Bootstrap Warning) */
+        #0d6efd 100%  /* Blu di nuovo per chiudere il cerchio senza stacchi */
+    );
+
+    /* OPZIONALE: Se vuoi un effetto "Glow" (bagliore) sfuocato,
+       decommenta la riga qui sotto: */
+    /* filter: blur(8px); opacity: 0.8; inset: -4px; */
+}
+
+/* Arrotondamento del video interno per seguire la cornice */
+.brand-video-frame video {
+    border-radius: 12px; /* Leggermente meno del contenitore esterno */
+    display: block; /* Rimuove spazi indesiderati sotto i video inline */
+    background: #000; /* Colore di sfondo mentre carica il video */
 }

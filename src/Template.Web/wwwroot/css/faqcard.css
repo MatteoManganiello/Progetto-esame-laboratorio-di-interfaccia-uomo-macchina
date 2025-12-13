@@ -1,0 +1,77 @@
+/* CARD PRINCIPALE */
+.faq-main-card {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 12px;
+    min-height: 550px;
+}
+
+/* SFONDO VIOLA CHIARO (Lato Destro) */
+.bg-purple-soft {
+    /* Un viola molto chiaro (simile al bg-info bg-opacity-10 ma viola) */
+    background-color: #f3ebff; 
+}
+
+/* CAROSELLO IMMAGINI */
+.object-fit-cover {
+    object-fit: cover;
+    object-position: center;
+}
+
+.overlay-gradient {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    /* Gradiente scuro per leggere il testo bianco */
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.1) 100%);
+}
+
+.pointer-events-none {
+    pointer-events: none; /* Permette al mouse di passare attraverso il testo se necessario */
+}
+
+/* ACCORDION */
+.custom-accordion .accordion-item {
+    border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.custom-accordion .accordion-button {
+    box-shadow: none !important;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+.custom-accordion .accordion-button:not(.collapsed) {
+    color: #6f42c1; /* Testo viola quando aperto */
+    background-color: #fff; 
+    font-weight: 700;
+}
+
+.custom-accordion .accordion-button::after {
+    background-size: 0.9rem;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+
+.custom-accordion .accordion-body {
+    line-height: 1.6;
+}
+/* --- NUOVI STILI PER LA CARD GUIDA --- */
+.step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); /* Ombra blu leggera */
+}
+
+/* Modifiche responsive per il carosello */
+/* Nasconde il carosello se lo schermo è troppo stretto per evitare schiacciamenti */
+@media (max-width: 1200px) {
+    .faq-carousel-col {
+        display: none;
+    }
+}

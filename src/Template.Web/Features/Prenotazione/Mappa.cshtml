@@ -8,7 +8,9 @@
 
     <link rel="stylesheet" href="~/css/seatmap.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
-    
+    <link rel="stylesheet" href="~/css/faqcard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/infocards.css" asp-append-version="true" />
+
 }
 
 <div id="app-prenotazione" class="container-fluid py-4">
@@ -17,16 +19,33 @@
         <partial name="_StatsCards" />
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">Prenotazione Spazi</h4>
-        <div class="bg-white p-2 rounded border shadow-sm">
-            <input type="date" class="form-control border-0 fw-bold p-0" style="width: 130px" v-model="dataSelezionata"
-                v-on:change="caricaDatiMappa">
-        </div>
+    
+<div class="d-flex justify-content-between align-items-center mb-3">
+    
+    <div class="d-flex gap-2">
+        <a href="#faq-section" class="btn btn-danger border shadow-sm p-2 rounded d-flex align-items-center gap-2" 
+           style="min-width: 110px; justify-content: center;">
+            <i class="fa-solid fa-book-open"></i>
+            <span class="d-none d-md-inline fw-bold">Guida, leggi prima di iniziare con la prenotazione</span>
+        </a>
+
+        <a href="#faq-section" class="btn border shadow-sm p-2 rounded d-flex align-items-center gap-2 text-white" 
+           style="background-color: #6f42c1; border-color: #6f42c1; min-width: 110px; justify-content: center;">
+            <i class="fa-solid fa-circle-question"></i>
+            <span class="d-none d-md-inline fw-bold">FAQ</span>
+        </a>
     </div>
 
+    <div class="bg-white p-2 rounded border shadow-sm">
+        <input type="date" class="form-control border-0 fw-bold p-0" style="width: 130px" v-model="dataSelezionata"
+            v-on:change="caricaDatiMappa">
+    </div>
+
+</div>
+    
+
     <div class="row g-4">
-        
+
         <div class="col-lg-9">
             <div class="map-card">
                 <div class="map-area" style="position: relative; height: 100%;">
@@ -40,7 +59,8 @@
                         </div>
 
                         <div class="tooltip-row mb-2">
-                            <span class="badge bg-light text-dark border" style="font-size:0.7em">{{ tooltip.dati.tipo }}</span>
+                            <span class="badge bg-light text-dark border" style="font-size:0.7em">{{ tooltip.dati.tipo
+                                }}</span>
 
                             <span v-if="tooltip.dati.tipo === 'Ristorante'">
                                 <i class="fa-solid fa-utensils text-info"></i> {{ tooltip.dati.postiOccupati }}/{{
@@ -57,7 +77,8 @@
                         </div>
 
                         <div v-if="tooltip.dati.metriQuadri || tooltip.dati.descrizione || tooltip.dati.haProiettore"
-                            class="mt-2 pt-2 text-light opacity-75 small" style="border-top: 1px dashed rgba(255,255,255,0.2);">
+                            class="mt-2 pt-2 text-light opacity-75 small"
+                            style="border-top: 1px dashed rgba(255,255,255,0.2);">
 
                             <div v-if="tooltip.dati.metriQuadri" class="d-flex align-items-center gap-2 mb-1">
                                 <i class="fa-solid fa-ruler-combined"></i>
@@ -97,12 +118,14 @@
                                 class="chair-shape" />
                         </defs>
 
-                        <image href="/images/piantina-base.png" x="0" y="0" width="1000" height="600" preserveAspectRatio="none"
-                            style="opacity: 0.6; filter: grayscale(30%);" />
+                        <image href="/images/piantina-base.png" x="0" y="0" width="1000" height="600"
+                            preserveAspectRatio="none" style="opacity: 0.6; filter: grayscale(30%);" />
 
-                        <text x="850" y="520" class="map-label" transform="rotate(90, 960, 300)" style="font-size:18px">DESK
+                        <text x="850" y="520" class="map-label" transform="rotate(90, 960, 300)"
+                            style="font-size:18px">DESK
                             ROOM</text>
-                        <text x="850" y="800" class="map-label" transform="rotate(90, 960, 300)" style="font-size:18px">SALA
+                        <text x="850" y="800" class="map-label" transform="rotate(90, 960, 300)"
+                            style="font-size:18px">SALA
                             EVENTI</text>
                         <text x="700" y="380" class="map-label">MEETING</text>
                         <text x="310" y="380" class="map-label">DEV TEAM</text>
@@ -112,9 +135,9 @@
                             style="font-size:18px">RISTORANTE</text>
 
                         <g v-for="p in postazioni" :key="p.id" class="seat-group"
-                            :class="getStatoClasse(p) + ' type-' + p.tipo.toLowerCase()" v-on:click="selezionaPostazione(p)"
-                            @@mouseenter="mostraTooltip(p, $event)" @@mousemove="muoviTooltip($event)"
-                            @@mouseleave="nascondiTooltip">
+                            :class="getStatoClasse(p) + ' type-' + p.tipo.toLowerCase()"
+                            v-on:click="selezionaPostazione(p)" @@mouseenter="mostraTooltip(p, $event)"
+                            @@mousemove="muoviTooltip($event)" @@mouseleave="nascondiTooltip">
 
                             <g v-if="p.tipo === 'Singola'">
                                 <use href="#office-chair" :x="p.x+5" :y="p.y+20" />
@@ -135,7 +158,8 @@
                                 <use href="#office-chair" :x="p.x+p.width-40" :y="p.y+p.height" />
                             </g>
                             <g v-else-if="p.tipo === 'Riunioni'">
-                                <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="20" class="desk-shape" />
+                                <rect :x="p.x" :y="p.y" :width="p.width" :height="p.height" rx="20"
+                                    class="desk-shape" />
                                 <text :x="p.x + p.width/2" :y="p.y + p.height/2 + 5" font-size="11" fill="#adb5bd"
                                     text-anchor="middle" font-weight="bold" style="pointer-events:none">MEET</text>
                                 <use href="#office-chair" :x="p.x+20" :y="p.y-20"
@@ -185,6 +209,9 @@
 
     <div class="mt-4">
         <partial name="_InfoCards" />
+    </div>
+    <div id="faq-section">
+        <partial name="_FaqCard" />
     </div>
 
 </div>
