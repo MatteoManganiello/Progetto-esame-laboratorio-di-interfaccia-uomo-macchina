@@ -1,13 +1,12 @@
-/* CARD PRINCIPALE */
+/* --- STILI CARD FAQ (DESTRA) --- */
 .faq-main-card {
     border: 1px solid #e0e0e0 !important;
     border-radius: 12px;
     min-height: 550px;
 }
 
-/* SFONDO VIOLA CHIARO (Lato Destro) */
+/* SFONDO VIOLA CHIARO */
 .bg-purple-soft {
-    /* Un viola molto chiaro (simile al bg-info bg-opacity-10 ma viola) */
     background-color: #f3ebff; 
 }
 
@@ -21,15 +20,14 @@
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 1;
-    /* Gradiente scuro per leggere il testo bianco */
     background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.1) 100%);
 }
 
 .pointer-events-none {
-    pointer-events: none; /* Permette al mouse di passare attraverso il testo se necessario */
+    pointer-events: none;
 }
 
-/* ACCORDION */
+/* --- STILI ACCORDION --- */
 .custom-accordion .accordion-item {
     border: 1px solid rgba(0,0,0,0.05) !important;
 }
@@ -56,7 +54,22 @@
 .custom-accordion .accordion-body {
     line-height: 1.6;
 }
-/* --- NUOVI STILI PER LA CARD GUIDA --- */
+
+/* --- STILI CARD GUIDA (SINISTRA) --- */
+
+/* Base della card dashboard (assicura angoli e hover) */
+.dashboard-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff; /* Fallback */
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+}
+
+/* Cerchi numerati (Step 1, 2, 3) */
 .step-circle {
     width: 32px;
     height: 32px;
@@ -65,11 +78,11 @@
     align-items: center;
     justify-content: center;
     font-size: 0.9rem;
-    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); /* Ombra blu leggera */
+    /* Ombra Rossa leggera per abbinarsi al tema */
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.25); 
 }
 
-/* Modifiche responsive per il carosello */
-/* Nasconde il carosello se lo schermo è troppo stretto per evitare schiacciamenti */
+/* --- MEDIA QUERIES --- */
 @media (max-width: 1200px) {
     .faq-carousel-col {
         display: none;
