@@ -27,9 +27,10 @@ namespace Template.Services.Prenotazioni
 
         public async Task<EsitoPrenotazione> EseguiPrenotazioneMultiplaAsync(PrenotaRequest request, string userId)
         {
-            if (request.PostazioniIds == null || !request.PostazioniIds.Any())
+            // 1. Validazione aggiornata per la lista 'Elementi'
+            if (request.Elementi == null || !request.Elementi.Any())
             {
-                return new EsitoPrenotazione { Successo = false, Messaggio = "Selezionare almeno una postazione." };
+                return new EsitoPrenotazione { Successo = false, Messaggio = "Il carrello è vuoto, selezionare almeno una postazione." };
             }
 
             if (request.Data.Date < DateTime.UtcNow.Date)
@@ -41,43 +42,55 @@ namespace Template.Services.Prenotazioni
 
             try
             {
-                var postazioniOccupate = await _dbContext.Prenotazioni
-                    .Where(p => request.PostazioniIds.Contains(p.PostazioneId)
-                             && p.DataPrenotazione.Date == request.Data.Date
-                             && !p.IsCancellata)
-                    .Select(p => p.Postazione.Nome)
-                    .ToListAsync();
-
-                if (postazioniOccupate.Any())
+                // Cicliamo su ogni elemento del carrello
+                foreach (var item in request.Elementi)
                 {
-                    var nomi = string.Join(", ", postazioniOccupate.Distinct());
-                    return new EsitoPrenotazione { Successo = false, Messaggio = $"Le seguenti postazioni sono già occupate: {nomi}." };
-                }
+                    // Recuperiamo la singola postazione
+                    var postazione = await _dbContext.Postazioni.FindAsync(item.PostazioneId);
 
-                var postazioniDb = await _dbContext.Postazioni
-                    .Where(p => request.PostazioniIds.Contains(p.Id))
-                    .ToListAsync();
-
-                if (postazioniDb.Count != request.PostazioniIds.Count)
-                {
-                    return new EsitoPrenotazione { Successo = false, Messaggio = "Una o più postazioni selezionate non esistono." };
-                }
-
-                foreach (var postazione in postazioniDb)
-                {
-                    int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
-                    
-                    if (request.NumeroPersone > capienzaMax)
+                    if (postazione == null)
                     {
-                        return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione '{postazione.Nome}' non può ospitare {request.NumeroPersone} persone (Max: {capienzaMax})." };
+                        return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione ID {item.PostazioneId} non esiste." };
                     }
 
+                    // 2. Calcolo occupazione (SOMMA delle persone già prenotate)
+                    // Questo risolve il problema dei posti del ristorante
+                    int postiGiaOccupati = await _dbContext.Prenotazioni
+                        .Where(p => p.PostazioneId == postazione.Id
+                                    && p.DataPrenotazione.Date == request.Data.Date
+                                    && !p.IsCancellata)
+                        .SumAsync(p => p.NumeroPersone);
+
+                    // 3. Logica differenziata (Ristorante vs Ufficio)
+                    if (postazione.Tipo == "Ristorante")
+                    {
+                        // Ristorante: Controllo capienza numerica
+                        int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
+                        
+                        // Controllo: Posti attuali + Nuovi posti richiesti > Capienza?
+                        if (postiGiaOccupati + item.NumeroPersone > capienzaMax)
+                        {
+                            int postiRimasti = capienzaMax - postiGiaOccupati;
+                            return new EsitoPrenotazione { Successo = false, Messaggio = $"'{postazione.Nome}': posti insufficienti (Richiesti: {item.NumeroPersone}, Rimasti: {postiRimasti})." };
+                        }
+                    }
+                    else
+                    {
+                        // Uffici/Meeting/Team: Uso esclusivo
+                        // Se c'è anche solo 1 persona, è occupata per gli altri
+                        if (postiGiaOccupati > 0)
+                        {
+                            return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione '{postazione.Nome}' è già occupata per questa data." };
+                        }
+                    }
+
+                    // 4. Creazione della Prenotazione
                     var nuovaPrenotazione = new Prenotazione 
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
                         UserId = userId,
-                        NumeroPersone = request.NumeroPersone, 
+                        NumeroPersone = item.NumeroPersone, // Usiamo il numero specifico dell'item del carrello
                         DataCreazione = DateTime.UtcNow,
                         IsCancellata = false
                     };
@@ -88,14 +101,14 @@ namespace Template.Services.Prenotazioni
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return new EsitoPrenotazione { Successo = true, Messaggio = $"{request.PostazioniIds.Count} spazi prenotati con successo!" };
+                return new EsitoPrenotazione { Successo = true, Messaggio = $"{request.Elementi.Count} spazi prenotati con successo!" };
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante la prenotazione multipla per User {UserId}", userId);
                 
-                return new EsitoPrenotazione { Successo = false, Messaggio = "Errore tecnico durante il salvataggio." };
+                return new EsitoPrenotazione { Successo = false, Messaggio = "Errore tecnico durante il salvataggio: " + ex.Message };
             }
         }
     }
