@@ -6,18 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
-// 1. NAMESPACE AGGIORNATI
-using Template.Data;                   // Per TemplateDbContext
-using Template.Entities;               // Per le Entità (Postazione, Prenotazione)
-using Template.Services.Prenotazioni;  // Per PrenotaRequest (che deve essere nella cartella Services/Prenotazioni)
+using Template.Data;
+using Template.Entities;
+using Template.Services.Prenotazioni;
 
 namespace Template.Web.Features.Prenotazione
 {
     [Authorize]
     public partial class PrenotazioneController : Controller
     {
-        // 2. USIAMO IL DB CONTEXT DIRETTAMENTE
         private readonly TemplateDbContext _dbContext;
 
         public PrenotazioneController(TemplateDbContext dbContext)
@@ -32,32 +29,52 @@ namespace Template.Web.Features.Prenotazione
         {
             var dataRichiesta = data ?? DateTime.Today;
 
-            // Recuperiamo le postazioni e verifichiamo se sono occupate in quella data
             var postazioniDb = await _dbContext.Postazioni
                 .Include(p => p.Prenotazioni)
                 .ToListAsync();
 
-            // Mappiamo i dati mantenendo ESATTAMENTE la tua logica di visualizzazione
-            var postazioniArricchite = postazioniDb.Select(p => new
+            var postazioniArricchite = postazioniDb.Select(p =>
             {
-                p.Id, 
-                p.Nome, 
-                p.Tipo, 
-                p.X, 
-                p.Y, 
-                p.Width, 
-                p.Height,
-                p.PostiTotali,
-                // Calcolo dinamico se è occupata in base alla data richiesta
-                PostiOccupati = p.Prenotazioni.Count(pren => pren.DataPrenotazione.Date == dataRichiesta.Date),
-                IsOccupata = p.Prenotazioni.Any(pren => pren.DataPrenotazione.Date == dataRichiesta.Date),
-                
-                // Le tue funzioni originali (invariate)
-                MetriQuadri = CalcolaMq(p.Tipo, p.Id),
-                Haledwall = p.Tipo == "Eventi",
-                HaProiettore = p.Tipo == "Riunioni" || p.Tipo == "Team",
-                HaFinestre = new[] { "Singola", "Ristorante", "Team", "Riunioni", "Eventi" }.Contains(p.Tipo),
-                Descrizione = GeneraDescrizione(p.Tipo, p.Id)
+                // 1. Calcoliamo quante persone ci sono
+                int personeTotaliSedute = p.Prenotazioni
+                    .Where(pren => pren.DataPrenotazione.Date == dataRichiesta.Date && !pren.IsCancellata)
+                    .Sum(pren => pren.NumeroPersone);
+
+                // 2. LOGICA COLORE (IsOccupata)
+                bool isOccupata;
+
+                if (p.Tipo == "Ristorante")
+                {
+                    // Ristorante: Rosso solo se PIENO
+                    isOccupata = personeTotaliSedute >= p.PostiTotali;
+                }
+                else
+                {
+                    // Uffici/Meeting/Team: Rosso appena c'è QUALCUNO (Uso Esclusivo)
+                    isOccupata = personeTotaliSedute > 0;
+                }
+
+                return new
+                {
+                    p.Id,
+                    p.Nome,
+                    p.Tipo,
+                    p.X,
+                    p.Y,
+                    p.Width,
+                    p.Height,
+                    p.PostiTotali,
+                    PostiOccupati = personeTotaliSedute,
+                    
+                    // Qui passiamo il valore calcolato con la logica differenziata
+                    IsOccupata = isOccupata,
+
+                    MetriQuadri = CalcolaMq(p.Tipo, p.Id),
+                    Haledwall = p.Tipo == "Eventi",
+                    HaProiettore = p.Tipo == "Riunioni" || p.Tipo == "Team",
+                    HaFinestre = new[] { "Singola", "Ristorante", "Team", "Riunioni", "Eventi" }.Contains(p.Tipo),
+                    Descrizione = GeneraDescrizione(p.Tipo, p.Id)
+                };
             });
 
             return Json(postazioniArricchite);
@@ -73,19 +90,7 @@ namespace Template.Web.Features.Prenotazione
 
             try
             {
-                // 1. Controllo Conflitti (Logica invariata)
-                var conflitti = await _dbContext.Prenotazioni
-                    .Where(p => request.PostazioniIds.Contains(p.PostazioneId) && p.DataPrenotazione.Date == request.Data.Date)
-                    .Select(p => p.Postazione.Nome)
-                    .ToListAsync();
-
-                if (conflitti.Any())
-                {
-                    var nomi = string.Join(", ", conflitti.Distinct());
-                    return BadRequest(new { success = false, message = $"Già occupati: {nomi}." });
-                }
-
-                // 2. Recupero Entità dal DB (Logica invariata)
+                // 1. Recupero Entità Postazioni dal DB
                 var postazioniDb = await _dbContext.Postazioni
                     .Where(p => request.PostazioniIds.Contains(p.Id))
                     .ToListAsync();
@@ -93,25 +98,55 @@ namespace Template.Web.Features.Prenotazione
                 if (postazioniDb.Count != request.PostazioniIds.Count)
                     return BadRequest(new { success = false, message = "Alcune postazioni non esistono." });
 
-                // 3. Controllo Capienza e Creazione Prenotazione
+                // 2. Controllo Disponibilità e Creazione
                 foreach (var postazione in postazioniDb)
                 {
-                    int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
-                    if (request.NumeroPersone > capienzaMax)
-                        return BadRequest(new { success = false, message = $"'{postazione.Nome}': max {capienzaMax} persone." });
+                    // Calcoliamo chi c'è già
+                    int postiGiaOccupati = _dbContext.Prenotazioni
+                        .Where(p => p.PostazioneId == postazione.Id
+                                    && p.DataPrenotazione.Date == request.Data.Date
+                                    && !p.IsCancellata)
+                        .Sum(p => p.NumeroPersone);
 
-                    // Creiamo la nuova prenotazione usando l'Entità corretta
+                    // --- LOGICA DI BLOCCO ---
+                    
+                    if (postazione.Tipo == "Ristorante")
+                    {
+                        // A. LOGICA RISTORANTE (Condiviso)
+                        int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
+                        if (postiGiaOccupati + request.NumeroPersone > capienzaMax)
+                        {
+                            return BadRequest(new { 
+                                success = false, 
+                                message = $"'{postazione.Nome}': spazio insufficiente. Liberi: {capienzaMax - postiGiaOccupati}." 
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // B. LOGICA UFFICI/MEETING (Esclusiva)
+                        // Se c'è anche solo 1 persona seduta, la stanza è BLOCCATA per gli altri
+                        if (postiGiaOccupati > 0)
+                        {
+                            return BadRequest(new { 
+                                success = false, 
+                                message = $"'{postazione.Nome}' è già occupata per questa data." 
+                            });
+                        }
+                    }
+
+                    // Se tutto ok, procedo
                     _dbContext.Prenotazioni.Add(new Template.Entities.Prenotazione
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
                         UserId = userId,
                         NumeroPersone = request.NumeroPersone,
-                        DataCreazione = DateTime.UtcNow
+                        DataCreazione = DateTime.UtcNow,
+                        IsCancellata = false
                     });
                 }
 
-                // 4. Salvataggio
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = $"{request.PostazioniIds.Count} spazi prenotati!" });
@@ -122,32 +157,23 @@ namespace Template.Web.Features.Prenotazione
             }
         }
 
-        // --- FUNZIONI DI SUPPORTO (Intoccate) ---
-
+        // --- FUNZIONI DI SUPPORTO ---
         private static int CalcolaMq(string tipo, int id) => tipo switch
         {
-            "Singola" => 12,
-            "Team" => id % 2 == 0 ? 25 : 27,
-            "Riunioni" => id % 2 == 0 ? 23 : 25,
-            "Eventi" => 112,
-            "Ristorante" => 77,
-            _ => 0
+            "Singola" => 12, "Team" => 25, "Riunioni" => 23, "Eventi" => 112, "Ristorante" => 77, _ => 0
         };
 
         private static string GeneraDescrizione(string tipo, int id)
         {
-            const string baseComfort = "WiFi Ultra, A/C, Cam.";
-            const string parquet = "Parquet, Locker. " + baseComfort;
-
+            const string baseComfort = "WiFi Ultra, A/C.";
             return tipo switch
             {
-                "Singola" => $"Open space luminoso. {baseComfort}",
-                "Team" => id % 2 == 0 ? $"Frontend Beta: iMac Pro. {parquet}" : $"Backend Alpha: Doppio Schermo. {parquet}",
-                "Riunioni" => id % 2 == 0 ? $"Blue Room: Insonorizzata. {parquet}" : $"Creative: Pareti scrivibili. {parquet}",
-                "Eventi" => $"Led Wall 4K, Audio Dolby. {baseComfort}",
-                "Ristorante" => $"Menu del giorno e relax. {baseComfort}",
+                "Singola" => $"Open space. {baseComfort}",
+                "Team" => $"Area Team. {baseComfort}",
+                "Riunioni" => $"Sala Meeting. {baseComfort}",
+                "Ristorante" => $"Zona pranzo. {baseComfort}",
                 _ => baseComfort
             };
         }
     }
-}   
+}

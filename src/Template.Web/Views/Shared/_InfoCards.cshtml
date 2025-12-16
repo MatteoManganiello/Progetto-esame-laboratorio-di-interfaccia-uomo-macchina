@@ -8,12 +8,18 @@
 
     <div class="col-lg-4 mb-4 mb-lg-0">
         <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-warning bg-opacity-10">
-            <div
-                class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Ultimi Ordini
-                </h6>
-                <span class="badge bg-warning rounded-pill">{{ storicoOrdini.length }}</span>
+            <div class="card-header bg-transparent border-bottom border-warning border-opacity-25 pt-4 px-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Ultimi Ordini
+                        </h6>
+                        <small class="text-muted d-block" style="font-size: 0.75em; line-height: 1.4;">
+                            In questa sezione puoi visualizzare gli ultimi ordini da te effettuati.
+                        </small>
+                    </div>
+                    <span class="badge bg-warning text-dark rounded-pill shadow-sm">{{ storicoOrdini.length }}</span>
+                </div>
             </div>
             <div class="card-body px-0">
                 <div v-if="storicoOrdini.length === 0" class="text-center text-muted py-4">
@@ -43,10 +49,17 @@
     <div class="col-lg-4 mb-4 mb-lg-0">
         <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-primary bg-opacity-25">
 
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h6 class="fw-bold mb-0 text-dark">
-                    <i class="fa-solid fa-bullhorn me-2 text-primary"></i>Novità in Azienda
-                </h6>
+            <div class="card-header bg-transparent border-bottom border-primary border-opacity-25 pt-4 px-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">
+                            <i class="fa-solid fa-bullhorn me-2 text-primary"></i>Novità in Azienda
+                        </h6>
+                        <small class="text-dark text-opacity-75 d-block" style="font-size: 0.75em; line-height: 1.4;">
+                            Qui sono raccolte tutte le comunicazioni ufficiali dell’azienda.
+                        </small>
+                    </div>
+                </div>
             </div>
 
             <div class="card-body custom-scroll" style="max-height: 300px; overflow-y: auto;">
@@ -63,10 +76,17 @@
 
     <div class="col-lg-4">
         <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-success bg-opacity-10">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-utensils text-success me-2"></i>Menù della
-                    Settimana</h6>
-                <small class="text-muted" style="font-size: 0.75em;">Chef: Giovanni Rana</small>
+            <div class="card-header bg-transparent border-bottom border-success border-opacity-25 pt-4 px-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            <i class="fa-solid fa-utensils text-success me-2"></i>Menù della Settimana
+                        </h6>
+                        <small class="text-muted d-block" style="font-size: 0.75em; line-height: 1.4;">
+                            Qui trovi il menu settimanale, aggiornato ogni lunedì.
+                        </small>
+                    </div>
+                </div>
             </div>
             <div class="card-body px-0 pb-0">
                 <div class="table-responsive">
@@ -95,3 +115,4 @@
     </div>
 
 </div>
+
