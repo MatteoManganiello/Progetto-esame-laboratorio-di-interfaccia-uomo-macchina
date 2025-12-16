@@ -19,30 +19,31 @@
         <partial name="_StatsCards" />
     </div>
 
-    
-<div class="d-flex justify-content-between align-items-center mb-3">
-    
-    <div class="d-flex gap-2">
-        <a href="#faq-section" class="btn btn-danger border shadow-sm p-2 rounded d-flex align-items-center gap-2" 
-           style="min-width: 110px; justify-content: center;">
-            <i class="fa-solid fa-book-open"></i>
-            <span class="d-none d-md-inline fw-bold">Guida, leggi prima di iniziare con la prenotazione</span>
-        </a>
 
-        <a href="#faq-section" class="btn border shadow-sm p-2 rounded d-flex align-items-center gap-2 text-white" 
-           style="background-color: #6f42c1; border-color: #6f42c1; min-width: 110px; justify-content: center;">
-            <i class="fa-solid fa-circle-question"></i>
-            <span class="d-none d-md-inline fw-bold">FAQ</span>
-        </a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div class="d-flex gap-2">
+            <a href="#faq-section"
+                class="btn btn-info text-white border shadow-sm p-2 rounded d-flex align-items-center gap-2"
+                style="min-width: 110px; justify-content: center;">
+                <i class="fa-solid fa-book-open"></i>
+                <span class="d-none d-md-inline fw-bold">Guida, leggi prima di iniziare con la prenotazione</span>
+            </a>
+
+            <a href="#faq-section" class="btn border shadow-sm p-2 rounded d-flex align-items-center gap-2 text-white"
+                style="background-color: #6f42c1; border-color: #6f42c1; min-width: 110px; justify-content: center;">
+                <i class="fa-solid fa-circle-question"></i>
+                <span class="d-none d-md-inline fw-bold">FAQ</span>
+            </a>
+        </div>
+
+        <div class="bg-white p-2 rounded border shadow-sm">
+            <input type="date" class="form-control border-0 fw-bold p-0" style="width: 130px" v-model="dataSelezionata"
+                v-on:change="caricaDatiMappa">
+        </div>
+
     </div>
 
-    <div class="bg-white p-2 rounded border shadow-sm">
-        <input type="date" class="form-control border-0 fw-bold p-0" style="width: 130px" v-model="dataSelezionata"
-            v-on:change="caricaDatiMappa">
-    </div>
-
-</div>
-    
 
     <div class="row g-4">
 
@@ -218,31 +219,45 @@
 
 @section scripts {
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        window.dashboardData = @Json.Serialize(ViewBag.DashboardData);
+    </script>
+
     <script>
         const { createApp } = Vue;
         createApp({
             data() {
+                // Recupero dati dal server (se presenti)
+                const dbData = window.dashboardData || {};
+
                 return {
-                    loading: false, loadingBtn: false,
+                    loading: false,
+                    loadingBtn: false,
                     dataSelezionata: new Date().toISOString().split('T')[0],
-                    postazioni: [], postazioneSelezionata: null,
+                    postazioni: [],
+                    postazioneSelezionata: null,
                     numeroPostiRichiesti: 1,
                     tooltip: { visibile: false, dati: null, x: 0, y: 0 },
 
-                    // --- DATI CARD INFORMATIVE ---
-                    storicoOrdini: [
+                    // --- NOVITÀ: CARRELLO ---
+                    carrello: [],
 
+                    // Nome Intestatario (Recuperato dal backend o vuoto)
+                    nomePrenotazione: dbData.nomeUtente || '',
+
+                    // --- DATI CARD INFORMATIVE (Con fallback) ---
+                    storicoOrdini: dbData.storicoOrdini || [],
+                    novita: dbData.novita || [
+                        { data: 'Oggi', titolo: 'Nuova Area Relax', contenuto: 'Inaugurata la zona relax al 2° piano.' },
+                        { data: 'Ieri', titolo: 'Manutenzione Wi-Fi', contenuto: 'Domani manutenzione programmata.' }
                     ],
-                    novita: [
-                        { data: 'Oggi', titolo: 'Nuova Area Relax', contenuto: 'Inaugurata la zona relax al 2° piano con macchinette caffè gratuite.' },
-                        { data: 'Ieri', titolo: 'Manutenzione Wi-Fi', contenuto: 'Domani dalle 18:00 alle 19:00 manutenzione programmata della rete.' }
-                    ],
-                    menuSettimanale: {
+                    menuSettimanale: dbData.menuSettimanale || {
                         'Lun': 'Lasagne alla Bolognese',
-                        'Mar': 'Risotto ai Funghi Porcini',
-                        'Mer': 'Pollo al Curry con Riso Basmati',
-                        'Gio': 'Gnocchi al Pesto Genovese',
-                        'Ven': 'Filetto di Orata con Patate'
+                        'Mar': 'Risotto ai Funghi',
+                        'Mer': 'Pollo al Curry',
+                        'Gio': 'Gnocchi al Pesto',
+                        'Ven': 'Orata con Patate'
                     }
                 }
             },
@@ -273,16 +288,29 @@
                 }
             },
 
-            mounted() { this.caricaDatiMappa(); },
+            mounted() {
+                this.caricaDatiMappa();
+            },
+
             methods: {
                 caricaDatiMappa() {
-                    this.loading = true; this.postazioneSelezionata = null;
+                    this.loading = true;
+                    this.postazioneSelezionata = null;
                     fetch(`/Prenotazione/GetDatiMappa?data=${this.dataSelezionata}`)
-                        .then(r => r.json()).then(d => { this.postazioni = d; this.loading = false; })
+                        .then(r => r.json())
+                        .then(d => {
+                            this.postazioni = d;
+                            this.loading = false;
+                        })
                         .catch(e => { console.error(e); this.loading = false; });
                 },
+
                 getStatoClasse(p) {
                     if (this.postazioneSelezionata && this.postazioneSelezionata.id === p.id) return "status-selected";
+
+                    // Verifica se è nel carrello (opzionale, per dargli un colore diverso)
+                    if (this.carrello.some(x => x.postazione.id === p.id)) return "status-selected";
+
                     if (p.tipo === 'Ristorante') {
                         if (p.postiOccupati >= p.postiTotali) return "status-booked";
                         if (p.postiOccupati > 0) return "status-partial";
@@ -290,27 +318,74 @@
                     }
                     return p.isOccupata ? "status-booked" : "status-free";
                 },
+
                 selezionaPostazione(p) {
+                    // Impedisci selezione se occupato
                     if (p.tipo === 'Ristorante' && p.postiOccupati >= p.postiTotali) return;
                     if (p.tipo !== 'Ristorante' && p.isOccupata) return;
 
                     this.postazioneSelezionata = p;
                     this.numeroPostiRichiesti = 1;
+
+                    // Se l'utente non ha un nome, proviamo a ricaricarlo (UX)
+                    if (!this.nomePrenotazione && window.dashboardData && window.dashboardData.nomeUtente) {
+                        this.nomePrenotazione = window.dashboardData.nomeUtente;
+                    }
                 },
-                confermaPrenotazione() {
-                    this.loadingBtn = true;
 
-                    // 1. URL UNICO: Usiamo sempre Prenotazione/Prenota (che abbiamo sistemato prima)
-                    let url = '/Prenotazione/Prenota';
+                // --- NUOVI METODI CARRELLO ---
 
-                    // 2. PAYLOAD CORRETTO: Il server vuole una LISTA (array) di ID, non un ID singolo.
-                    let payload = {
-                        PostazioniIds: [this.postazioneSelezionata.id], // <--- Nota le parentesi quadre []
-                        Data: this.dataSelezionata,
-                        NumeroPersone: parseInt(this.numeroPostiRichiesti) // Assicuriamoci sia un numero
+                aggiungiAlCarrello() {
+                    if (!this.postazioneSelezionata) return;
+
+                    // Controlla se esiste già
+                    let index = this.carrello.findIndex(x => x.postazione.id === this.postazioneSelezionata.id);
+
+                    let item = {
+                        postazione: this.postazioneSelezionata,
+                        numeroPersone: parseInt(this.numeroPostiRichiesti)
                     };
 
-                    fetch(url, {
+                    if (index > -1) {
+                        // Aggiorna esistente
+                        this.carrello[index] = item;
+                    } else {
+                        // Aggiungi nuovo
+                        this.carrello.push(item);
+                    }
+
+                    // Chiudi selezione
+                    this.postazioneSelezionata = null;
+                },
+
+                rimuoviDalCarrello(id) {
+                    this.carrello = this.carrello.filter(x => x.postazione.id !== id);
+                },
+
+                // --- NUOVA LOGICA DI CONFERMA (Invia Lista Elementi) ---
+                confermaPrenotazione() {
+                    // Se l'utente ha una selezione aperta ma non l'ha aggiunta al carrello, aggiungiamola ora
+                    if (this.postazioneSelezionata) {
+                        this.aggiungiAlCarrello();
+                    }
+
+                    if (this.carrello.length === 0) return;
+
+                    this.loadingBtn = true;
+
+                    // Prepariamo la lista 'Elementi' come vuole il C#
+                    let elementiApi = this.carrello.map(item => ({
+                        PostazioneId: item.postazione.id,
+                        NumeroPersone: item.numeroPersone
+                    }));
+
+                    let payload = {
+                        Data: this.dataSelezionata,
+                        Elementi: elementiApi, // <--- LISTA NUOVA
+                        // Intestatario: this.nomePrenotazione (Opzionale, il backend ora lo ignora o lo usa come log)
+                    };
+
+                    fetch('/Prenotazione/Prenota', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -321,17 +396,20 @@
                         if (r.ok) {
                             alert("✅ " + res.message);
 
-                            // Aggiorno le statistiche locali per bellezza
-                            this.storicoOrdini.unshift({
-                                data: 'Adesso',
-                                descrizione: this.postazioneSelezionata.nome,
-                                tipo: this.postazioneSelezionata.tipo,
-                                prezzo: this.getPrezzoTotale()
+                            // Aggiorno storico ordini (solo visivo)
+                            this.carrello.forEach(item => {
+                                this.storicoOrdini.unshift({
+                                    data: 'Adesso',
+                                    descrizione: item.postazione.nome + (item.postazione.tipo === 'Ristorante' ? ` (x${item.numeroPersone})` : ''),
+                                    tipo: item.postazione.tipo,
+                                    prezzo: this.getPrezzoItem(item)
+                                });
                             });
 
-                            // Ricarico la mappa per vedere il rosso
-                            this.caricaDatiMappa();
-                            this.postazioneSelezionata = null; // Chiudo la sidebar
+                            // Reset
+                            this.carrello = [];
+                            this.postazioneSelezionata = null;
+                            this.caricaDatiMappa(); // Ricarica per vedere i rossi
                         } else {
                             alert("❌ Errore: " + (res.message || "Qualcosa è andato storto"));
                         }
@@ -342,7 +420,37 @@
                     });
                 },
 
-                // --- METODI TOOLTIP ---
+                // --- CALCOLO PREZZI ---
+                getPrezzoUnitario(tipo) {
+                    switch (tipo) {
+                        case 'Singola': return 25;
+                        case 'Team': return 150;
+                        case 'Riunioni': return 80;
+                        case 'Eventi': return 500;
+                        case 'Ristorante': return 15;
+                        default: return 0;
+                    }
+                },
+
+                // Prezzo di una riga del carrello
+                getPrezzoItem(item) {
+                    let base = this.getPrezzoUnitario(item.postazione.tipo);
+                    return item.postazione.tipo === 'Ristorante' ? base * item.numeroPersone : base;
+                },
+
+                // Totale dell'intero carrello
+                getTotaleCarrello() {
+                    return this.carrello.reduce((acc, item) => acc + this.getPrezzoItem(item), 0);
+                },
+
+                // Prezzo della selezione corrente (prima di aggiungerla al carrello)
+                getPrezzoTotale() {
+                    if (!this.postazioneSelezionata) return 0;
+                    let base = this.getPrezzoUnitario(this.postazioneSelezionata.tipo);
+                    return this.postazioneSelezionata.tipo === 'Ristorante' ? base * this.numeroPostiRichiesti : base;
+                },
+
+                // --- TOOLTIP ---
                 mostraTooltip(postazione, event) {
                     this.tooltip.dati = postazione;
                     this.tooltip.visibile = true;
@@ -354,29 +462,6 @@
                 },
                 nascondiTooltip() {
                     this.tooltip.visibile = false;
-                },
-
-                // --- METODI PREZZI ---
-                getPrezzoUnitario(tipo) {
-                    switch (tipo) {
-                        case 'Singola': return 25;
-                        case 'Team': return 150;
-                        case 'Riunioni': return 80;
-                        case 'Eventi': return 500;
-                        case 'Ristorante': return 15;
-                        default: return 0;
-                    }
-                },
-                getPrezzoTotale() {
-                    if (!this.postazioneSelezionata) return 0;
-
-                    let prezzoBase = this.getPrezzoUnitario(this.postazioneSelezionata.tipo);
-
-                    if (this.postazioneSelezionata.tipo === 'Ristorante') {
-                        return prezzoBase * this.numeroPostiRichiesti;
-                    } else {
-                        return prezzoBase;
-                    }
                 }
             }
         }).mount('#app-prenotazione');

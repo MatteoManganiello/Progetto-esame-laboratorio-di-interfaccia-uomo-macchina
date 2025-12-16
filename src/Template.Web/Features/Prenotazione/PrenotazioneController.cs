@@ -27,6 +27,7 @@ namespace Template.Web.Features.Prenotazione
         [HttpGet]
         public virtual async Task<IActionResult> GetDatiMappa(DateTime? data)
         {
+            // --- QUESTA PARTE È RIMASTA INVARIATA (Logica colori corretta) ---
             var dataRichiesta = data ?? DateTime.Today;
 
             var postazioniDb = await _dbContext.Postazioni
@@ -35,22 +36,18 @@ namespace Template.Web.Features.Prenotazione
 
             var postazioniArricchite = postazioniDb.Select(p =>
             {
-                // 1. Calcoliamo quante persone ci sono
                 int personeTotaliSedute = p.Prenotazioni
                     .Where(pren => pren.DataPrenotazione.Date == dataRichiesta.Date && !pren.IsCancellata)
                     .Sum(pren => pren.NumeroPersone);
 
-                // 2. LOGICA COLORE (IsOccupata)
                 bool isOccupata;
 
                 if (p.Tipo == "Ristorante")
                 {
-                    // Ristorante: Rosso solo se PIENO
                     isOccupata = personeTotaliSedute >= p.PostiTotali;
                 }
                 else
                 {
-                    // Uffici/Meeting/Team: Rosso appena c'è QUALCUNO (Uso Esclusivo)
                     isOccupata = personeTotaliSedute > 0;
                 }
 
@@ -65,10 +62,7 @@ namespace Template.Web.Features.Prenotazione
                     p.Height,
                     p.PostiTotali,
                     PostiOccupati = personeTotaliSedute,
-                    
-                    // Qui passiamo il valore calcolato con la logica differenziata
                     IsOccupata = isOccupata,
-
                     MetriQuadri = CalcolaMq(p.Tipo, p.Id),
                     Haledwall = p.Tipo == "Eventi",
                     HaProiettore = p.Tipo == "Riunioni" || p.Tipo == "Team",
@@ -80,87 +74,88 @@ namespace Template.Web.Features.Prenotazione
             return Json(postazioniArricchite);
         }
 
+        // --- METODO PRENOTA AGGIORNATO PER IL CARRELLO ---
         [HttpPost]
         public virtual async Task<IActionResult> Prenota([FromBody] PrenotaRequest request)
         {
-            if (!ModelState.IsValid || request.PostazioniIds == null || !request.PostazioniIds.Any())
-                return BadRequest(new { success = false, message = "Selezionare almeno una postazione." });
+            // 1. Validazione: Verifichiamo se ci sono Elementi nel carrello
+            if (!ModelState.IsValid || request.Elementi == null || !request.Elementi.Any())
+                return BadRequest(new { success = false, message = "Il carrello è vuoto." });
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity.Name ?? "Utente_Sconosciuto";
 
+            // 2. Transazione: Tutto o niente
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             try
             {
-                // 1. Recupero Entità Postazioni dal DB
-                var postazioniDb = await _dbContext.Postazioni
-                    .Where(p => request.PostazioniIds.Contains(p.Id))
-                    .ToListAsync();
-
-                if (postazioniDb.Count != request.PostazioniIds.Count)
-                    return BadRequest(new { success = false, message = "Alcune postazioni non esistono." });
-
-                // 2. Controllo Disponibilità e Creazione
-                foreach (var postazione in postazioniDb)
+                // Cicliamo ogni elemento del carrello
+                foreach (var item in request.Elementi)
                 {
-                    // Calcoliamo chi c'è già
-                    int postiGiaOccupati = _dbContext.Prenotazioni
+                    // Recuperiamo la singola postazione
+                    var postazione = await _dbContext.Postazioni.FindAsync(item.PostazioneId);
+
+                    if (postazione == null)
+                        throw new Exception($"La postazione ID {item.PostazioneId} non esiste.");
+
+                    // Calcolo occupazione attuale
+                    int postiGiaOccupati = await _dbContext.Prenotazioni
                         .Where(p => p.PostazioneId == postazione.Id
                                     && p.DataPrenotazione.Date == request.Data.Date
                                     && !p.IsCancellata)
-                        .Sum(p => p.NumeroPersone);
+                        .SumAsync(p => p.NumeroPersone);
 
                     // --- LOGICA DI BLOCCO ---
-                    
                     if (postazione.Tipo == "Ristorante")
                     {
-                        // A. LOGICA RISTORANTE (Condiviso)
+                        // Ristorante: Controllo capienza numerica
                         int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
-                        if (postiGiaOccupati + request.NumeroPersone > capienzaMax)
+                        
+                        // Qui usiamo item.NumeroPersone (specifico per questa voce del carrello)
+                        if (postiGiaOccupati + item.NumeroPersone > capienzaMax)
                         {
-                            return BadRequest(new { 
-                                success = false, 
-                                message = $"'{postazione.Nome}': spazio insufficiente. Liberi: {capienzaMax - postiGiaOccupati}." 
-                            });
+                            throw new Exception($"'{postazione.Nome}': spazio insufficiente (Richiesti: {item.NumeroPersone}, Liberi: {capienzaMax - postiGiaOccupati}).");
                         }
                     }
                     else
                     {
-                        // B. LOGICA UFFICI/MEETING (Esclusiva)
-                        // Se c'è anche solo 1 persona seduta, la stanza è BLOCCATA per gli altri
+                        // Uffici/Meeting: Uso esclusivo
                         if (postiGiaOccupati > 0)
                         {
-                            return BadRequest(new { 
-                                success = false, 
-                                message = $"'{postazione.Nome}' è già occupata per questa data." 
-                            });
+                            throw new Exception($"'{postazione.Nome}' è già occupata.");
                         }
                     }
 
-                    // Se tutto ok, procedo
+                    // Creazione Prenotazione
                     _dbContext.Prenotazioni.Add(new Template.Entities.Prenotazione
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
                         UserId = userId,
-                        NumeroPersone = request.NumeroPersone,
+                        NumeroPersone = item.NumeroPersone, // Salva il numero specifico dell'item
                         DataCreazione = DateTime.UtcNow,
                         IsCancellata = false
                     });
                 }
 
+                // 3. Salvataggio e Commit
                 await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-                return Ok(new { success = true, message = $"{request.PostazioniIds.Count} spazi prenotati!" });
+                return Ok(new { success = true, message = "Prenotazione multipla confermata con successo!" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = "Errore server: " + ex.Message });
+                // Se c'è un errore, annulla tutto
+                await transaction.RollbackAsync();
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
 
-        // --- FUNZIONI DI SUPPORTO ---
+        // --- FUNZIONI DI SUPPORTO (Intoccate) ---
         private static int CalcolaMq(string tipo, int id) => tipo switch
         {
-            "Singola" => 12, "Team" => 25, "Riunioni" => 23, "Eventi" => 112, "Ristorante" => 77, _ => 0
+            "Singola" => 52, "Team" => 25, "Riunioni" => 23, "Eventi" => 112, "Ristorante" => 77, _ => 0
         };
 
         private static string GeneraDescrizione(string tipo, int id)

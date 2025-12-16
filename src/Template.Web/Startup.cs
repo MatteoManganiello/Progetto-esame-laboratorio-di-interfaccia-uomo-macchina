@@ -38,7 +38,8 @@ namespace Template.Web
             // Usiamo InMemory per l'esame.
             services.AddDbContext<TemplateDbContext>(options =>
             {
-                options.UseInMemoryDatabase(databaseName: "Template");
+                options.UseInMemoryDatabase(databaseName: "Template")
+                .ConfigureWarnings(x => x.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
             });
 
             // 2. REGISTRAZIONE SERVIZI (Dependency Injection)
