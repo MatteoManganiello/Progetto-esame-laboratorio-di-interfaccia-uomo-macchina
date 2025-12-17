@@ -210,7 +210,7 @@
     </button>
 
     <button v-if="carrello && carrello.length > 0"
-        class="btn btn-primary btn-lg btn-sm-md py-3 py-md-2 fw-bold shadow-sm d-flex justify-content-center align-items-center rounded-pill animate__animated animate__pulse animate__faster"
+        class="btn btn-primary btn-sm fw-bold shadow-sm d-flex justify-content-center align-items-center rounded-pill animate__animated animate__pulse animate__faster py-1 px-3"
         v-on:click="confermaPrenotazione"
         :disabled="loadingBtn">
 
@@ -218,9 +218,9 @@
         <i v-else class="fa-solid fa-receipt me-2"></i>
 
         <span v-if="!loadingBtn">
-            Conferma Ordine ({{ carrello.length }})
+            Conferma ({{ carrello.length }})
         </span>
-    </button>
+</button>
 
     <button v-if="postazioneSelezionata"
         class="btn btn-danger btn-lg btn-sm-md py-2 py-md-1 fw-bold shadow-sm rounded-pill border-0"
