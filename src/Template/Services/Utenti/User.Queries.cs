@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Template.Infrastructure; // Qui deve esserci Paging e LoginException
-using Template.Entities;       // Qui c'è la classe User
-using Template.Data;           // Qui c'è il DbContext
+using Template.Infrastructure; 
+using Template.Entities;      
+using Template.Data;          
 
 namespace Template.Services.Utenti
 {
-    // ==========================================
-    // DTOs (Data Transfer Objects)
-    // ==========================================
     public class UsersSelectQuery
     {
         public Guid IdCurrentUser { get; set; }
@@ -70,10 +67,6 @@ namespace Template.Services.Utenti
         public string Email { get; set; }
         public string Password { get; set; }
     }
-
-    // ==========================================
-    // CLASSE SERVICE (UserQueries)
-    // ==========================================
     public class UserQueries
     {
         private readonly TemplateDbContext _dbContext;
@@ -83,27 +76,25 @@ namespace Template.Services.Utenti
             _dbContext = dbContext;
         }
 
-        // --- 1. Metodo Semplice (Utile per il LoginController rapido) ---
+
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        // --- 2. Query Select (Per menu a tendina) ---
         public async Task<UsersSelectDTO> Query(UsersSelectQuery qry)
         {
             var queryable = _dbContext.Users.AsQueryable();
 
-            // Filtro ID corrente (se diverso da Empty)
+
             if (qry.IdCurrentUser != Guid.Empty)
             {
-                // Nota: Assumiamo che User.Id sia Guid. Se è stringa, togli il Guid.Empty
-                // queryable = queryable.Where(x => x.Id != qry.IdCurrentUser);
+
             }
 
             if (!string.IsNullOrWhiteSpace(qry.Filter))
             {
-                queryable = queryable.Where(x => x.Email.Contains(qry.Filter)); // Rimossa StringComparison per compatibilità EF Core standard
+                queryable = queryable.Where(x => x.Email.Contains(qry.Filter)); 
             }
 
             return new UsersSelectDTO
@@ -111,7 +102,7 @@ namespace Template.Services.Utenti
                 Users = await queryable
                     .Select(x => new UsersSelectDTO.UserDTO
                     {
-                        Id = x.Id, // Se x.Id è stringa e il DTO vuole Guid, usa Guid.Parse(x.Id)
+                        Id = x.Id, 
                         Email = x.Email
                     })
                     .ToArrayAsync(),
@@ -119,7 +110,6 @@ namespace Template.Services.Utenti
             };
         }
 
-        // --- 3. Query Index (Per liste paginate) ---
         public async Task<UsersIndexDTO> Query(UsersIndexQuery qry)
         {
             var queryable = _dbContext.Users.AsQueryable();
@@ -134,11 +124,9 @@ namespace Template.Services.Utenti
                 queryable = queryable.Where(x => x.Email.Contains(qry.Filter));
             }
 
-            // Nota: .ApplyPaging è un Extension Method. 
-            // Assicurati che "using Template.Infrastructure" sia presente e corretto.
             
             var list = await queryable
-                    // .ApplyPaging(qry.Paging) // Scommenta se hai l'estensione ApplyPaging funzionante
+
                     .Select(x => new UsersIndexDTO.UserDTO
                     {
                         Id = x.Id, 
@@ -155,7 +143,6 @@ namespace Template.Services.Utenti
             };
         }
 
-        // --- 4. Query Dettaglio ---
         public async Task<UserDetailDTO> Query(UserDetailQuery qry)
         {
             return await _dbContext.Users
@@ -171,17 +158,14 @@ namespace Template.Services.Utenti
                 .FirstOrDefaultAsync();
         }
 
-        // --- 5. Query Login (Con controllo Password) ---
         public async Task<UserDetailDTO> Query(CheckLoginCredentialsQuery qry)
         {
             var user = await _dbContext.Users
                 .Where(x => x.Email == qry.Email)
                 .FirstOrDefaultAsync();
 
-            // ATTENZIONE: Questo metodo IsMatchWithPassword deve esistere dentro User.cs!
             if (user == null || user.IsMatchWithPassword(qry.Password) == false)
             {
-                // Assicurati di avere la classe LoginException in Template.Infrastructure
                 throw new Exception("Email o password errate"); 
             }
 

@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Template.Entities; // <--- 1. Importiamo le tue Entità (Postazione, Prenotazione)
-using Template.Data;     // <--- 2. Importiamo il DbContext
+using Template.Entities; 
+using Template.Data;     
 
-namespace Template.Services.Postazioni // <--- 3. Namespace corretto
+namespace Template.Services.Postazioni 
 {
-    // ==========================================
-    // DTO (Data Transfer Objects)
-    // ==========================================
     public class MappaQuery { public DateTime Data { get; set; } }
 
     public class MappaDTO
@@ -48,23 +45,16 @@ namespace Template.Services.Postazioni // <--- 3. Namespace corretto
         }
     }
 
-    // ==========================================
-    // CLASSE QUERY (Gestisce la lettura dei dati)
-    // ==========================================
     public class PostazioneQueries
     {
         private readonly TemplateDbContext _dbContext;
 
-        // Costruttore: Inietta il database
         public PostazioneQueries(TemplateDbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        // -----------------------------------------------------------------------
-        // METODO 1: QUERY GENERALE (Mappa Uffici)
-        // -----------------------------------------------------------------------
-        public async Task<MappaDTO> Query(MappaQuery qry)
+            public async Task<MappaDTO> Query(MappaQuery qry)
         {
             await EnsureSeeding(); 
 
@@ -83,7 +73,7 @@ namespace Template.Services.Postazioni // <--- 3. Namespace corretto
                     int occupati = prenotazioniOggi.Count(id => id == p.Id);
                     int capienza = p.PostiTotali > 0 ? p.PostiTotali : 1;
 
-                    // Logica colore: Ristorante rosso se PIENO, Uffici rossi se occupati >= 1
+                   
                     bool isRed = (p.Tipo == "Ristorante") 
                                  ? occupati >= capienza 
                                  : occupati > 0;
@@ -103,9 +93,6 @@ namespace Template.Services.Postazioni // <--- 3. Namespace corretto
             };
         }
 
-        // -----------------------------------------------------------------------
-        // METODO 2: GET RISTORANTE
-        // -----------------------------------------------------------------------
         public async Task<RistoranteDTO> GetRistorante(DateTime date)
         {
             await EnsureSeeding();
@@ -136,10 +123,7 @@ namespace Template.Services.Postazioni // <--- 3. Namespace corretto
             };
         }
 
-        // -----------------------------------------------------------------------
-        // SEEDING DATI (Coordinate)
-        // -----------------------------------------------------------------------
-        private async Task EnsureSeeding()
+         private async Task EnsureSeeding()
         {
             if (await _dbContext.Postazioni.AnyAsync()) return;
 

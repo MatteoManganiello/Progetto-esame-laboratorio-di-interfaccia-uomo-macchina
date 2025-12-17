@@ -27,7 +27,6 @@ namespace Template.Services.Prenotazioni
 
         public async Task<EsitoPrenotazione> EseguiPrenotazioneMultiplaAsync(PrenotaRequest request, string userId)
         {
-            // 1. Validazione aggiornata per la lista 'Elementi'
             if (request.Elementi == null || !request.Elementi.Any())
             {
                 return new EsitoPrenotazione { Successo = false, Messaggio = "Il carrello è vuoto, selezionare almeno una postazione." };
@@ -42,10 +41,8 @@ namespace Template.Services.Prenotazioni
 
             try
             {
-                // Cicliamo su ogni elemento del carrello
                 foreach (var item in request.Elementi)
                 {
-                    // Recuperiamo la singola postazione
                     var postazione = await _dbContext.Postazioni.FindAsync(item.PostazioneId);
 
                     if (postazione == null)
@@ -53,21 +50,17 @@ namespace Template.Services.Prenotazioni
                         return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione ID {item.PostazioneId} non esiste." };
                     }
 
-                    // 2. Calcolo occupazione (SOMMA delle persone già prenotate)
-                    // Questo risolve il problema dei posti del ristorante
                     int postiGiaOccupati = await _dbContext.Prenotazioni
                         .Where(p => p.PostazioneId == postazione.Id
                                     && p.DataPrenotazione.Date == request.Data.Date
                                     && !p.IsCancellata)
                         .SumAsync(p => p.NumeroPersone);
 
-                    // 3. Logica differenziata (Ristorante vs Ufficio)
                     if (postazione.Tipo == "Ristorante")
                     {
-                        // Ristorante: Controllo capienza numerica
+
                         int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
                         
-                        // Controllo: Posti attuali + Nuovi posti richiesti > Capienza?
                         if (postiGiaOccupati + item.NumeroPersone > capienzaMax)
                         {
                             int postiRimasti = capienzaMax - postiGiaOccupati;
@@ -76,21 +69,20 @@ namespace Template.Services.Prenotazioni
                     }
                     else
                     {
-                        // Uffici/Meeting/Team: Uso esclusivo
-                        // Se c'è anche solo 1 persona, è occupata per gli altri
+
                         if (postiGiaOccupati > 0)
                         {
                             return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione '{postazione.Nome}' è già occupata per questa data." };
                         }
                     }
 
-                    // 4. Creazione della Prenotazione
+
                     var nuovaPrenotazione = new Prenotazione 
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
                         UserId = userId,
-                        NumeroPersone = item.NumeroPersone, // Usiamo il numero specifico dell'item del carrello
+                        NumeroPersone = item.NumeroPersone, 
                         DataCreazione = DateTime.UtcNow,
                         IsCancellata = false
                     };
