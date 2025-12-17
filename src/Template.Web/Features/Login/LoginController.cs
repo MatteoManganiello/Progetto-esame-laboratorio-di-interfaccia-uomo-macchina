@@ -44,12 +44,10 @@ namespace Template.Web.Features.Login
         [HttpPost]
         public async virtual Task<ActionResult> Login(LoginViewModel model)
         {
-            // --- DEBUG 1: Siamo entrati nel metodo? ---
             Console.WriteLine($"[DEBUG LOGIN] Tentativo di accesso: Email='{model.Email}' Password='{model.Password}'");
 
             if (!ModelState.IsValid)
             {
-                // --- DEBUG 2: Il form è invalido? ---
                 Console.WriteLine("[DEBUG LOGIN] ModelState NON VALIDO!");
                 foreach (var state in ModelState)
                 {
@@ -63,28 +61,24 @@ namespace Template.Web.Features.Login
 
             try
             {
-                // --- DEBUG 3: Chiamiamo la query ---
                 Console.WriteLine("[DEBUG LOGIN] Chiamata a UserQueries...");
                 
                 var utente = await _userQueries.Query(new CheckLoginCredentialsQuery 
                 { 
-                    Email = model.Email?.Trim(), // Aggiunto Trim per sicurezza
+                    Email = model.Email?.Trim(), 
                     Password = model.Password 
                 });
 
-                // --- DEBUG 4: Utente trovato ---
                 Console.WriteLine($"[DEBUG LOGIN] Successo! Utente trovato: {utente.Email} (ID: {utente.Id})");
 
                 return await LoginAndRedirect(utente.Email, utente.Id.ToString(), model.ReturnUrl, model.RememberMe);
             }
             catch (Exception ex)
             {
-                // --- DEBUG 5: Qualcosa è andato storto nella logica ---
                 Console.WriteLine($"[DEBUG LOGIN] ECCEZIONE: {ex.Message}");
                 ModelState.AddModelError(LoginErrorModelStateKey, "Errore: " + ex.Message);
             }
 
-            // Se siamo qui, qualcosa è fallito
             Console.WriteLine("[DEBUG LOGIN] Ritorno alla vista Login (Fallito)");
             return View(model);
         }

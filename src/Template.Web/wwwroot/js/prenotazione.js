@@ -20,8 +20,8 @@ const { createApp } = Vue;
 
                     storicoOrdini: dbData.storicoOrdini || [],
                     novita: dbData.novita || [
-                        { data: 'Oggi', titolo: 'Nuova Area Relax', contenuto: 'Inaugurata la zona relax al 2° piano.' },
-                        { data: 'Ieri', titolo: 'Manutenzione Wi-Fi', contenuto: 'Domani manutenzione programmata.' }
+                        { data: '17/12/2025', titolo: 'Manutenzione Wi-Fi', contenuto: 'Manutenzione Wi-Fi dalle 17 alle 18' },
+                        { data: '22/11/2025', titolo: 'Nuova Area meeting', contenuto: 'Apertura della seconda sala meeting' }
                     ],
                     menuSettimanale: dbData.menuSettimanale || {
                         'Lun': 'Lasagne alla Bolognese',
@@ -159,7 +159,7 @@ const { createApp } = Vue;
                         const res = await r.json();
 
                         if (r.ok) {
-                            alert("✅ " + res.message);
+                            alert(" " + res.message);
 
                             this.carrello.forEach(item => {
                                 this.storicoOrdini.unshift({
@@ -175,12 +175,12 @@ const { createApp } = Vue;
                             this.postazioneSelezionata = null;
                             this.caricaDatiMappa(); 
                         } else {
-                            alert("❌ Errore: " + (res.message || "Qualcosa è andato storto"));
+                            alert(" Errore: " + (res.message || "Qualcosa è andato storto"));
                         }
                     }).catch(err => {
                         this.loadingBtn = false;
                         console.error(err);
-                        alert("❌ Errore di connessione al server.");
+                        alert(" Errore di connessione al server.");
                     });
                 },
 

@@ -10,7 +10,7 @@ namespace Template.Web.Features.Register
         [Required(ErrorMessage = "Il cognome è obbligatorio")]
         public string LastName { get; set; }
 
-        public string NickName { get; set; } // Opzionale
+        public string NickName { get; set; } 
 
         [Required(ErrorMessage = "L'email è obbligatoria")]
         [EmailAddress(ErrorMessage = "Inserisci un'email valida")]
