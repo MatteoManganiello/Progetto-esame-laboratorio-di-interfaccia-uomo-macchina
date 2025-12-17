@@ -27,7 +27,6 @@ namespace Template.Web.Features.Prenotazione
         [HttpGet]
         public virtual async Task<IActionResult> GetDatiMappa(DateTime? data)
         {
-            // --- QUESTA PARTE È RIMASTA INVARIATA (Logica colori corretta) ---
             var dataRichiesta = data ?? DateTime.Today;
 
             var postazioniDb = await _dbContext.Postazioni
@@ -64,6 +63,7 @@ namespace Template.Web.Features.Prenotazione
                     PostiOccupati = personeTotaliSedute,
                     IsOccupata = isOccupata,
                     MetriQuadri = CalcolaMq(p.Tipo, p.Id),
+                    HaArmadietto = p.Tipo == "Riunioni" || p.Tipo == "Team",
                     Haledwall = p.Tipo == "Eventi",
                     HaProiettore = p.Tipo == "Riunioni" || p.Tipo == "Team",
                     HaFinestre = new[] { "Singola", "Ristorante", "Team", "Riunioni", "Eventi" }.Contains(p.Tipo),
@@ -74,44 +74,35 @@ namespace Template.Web.Features.Prenotazione
             return Json(postazioniArricchite);
         }
 
-        // --- METODO PRENOTA AGGIORNATO PER IL CARRELLO ---
         [HttpPost]
         public virtual async Task<IActionResult> Prenota([FromBody] PrenotaRequest request)
         {
-            // 1. Validazione: Verifichiamo se ci sono Elementi nel carrello
             if (!ModelState.IsValid || request.Elementi == null || !request.Elementi.Any())
                 return BadRequest(new { success = false, message = "Il carrello è vuoto." });
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity.Name ?? "Utente_Sconosciuto";
 
-            // 2. Transazione: Tutto o niente
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try
             {
-                // Cicliamo ogni elemento del carrello
                 foreach (var item in request.Elementi)
                 {
-                    // Recuperiamo la singola postazione
                     var postazione = await _dbContext.Postazioni.FindAsync(item.PostazioneId);
 
                     if (postazione == null)
                         throw new Exception($"La postazione ID {item.PostazioneId} non esiste.");
 
-                    // Calcolo occupazione attuale
                     int postiGiaOccupati = await _dbContext.Prenotazioni
                         .Where(p => p.PostazioneId == postazione.Id
                                     && p.DataPrenotazione.Date == request.Data.Date
                                     && !p.IsCancellata)
                         .SumAsync(p => p.NumeroPersone);
 
-                    // --- LOGICA DI BLOCCO ---
                     if (postazione.Tipo == "Ristorante")
                     {
-                        // Ristorante: Controllo capienza numerica
                         int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
                         
-                        // Qui usiamo item.NumeroPersone (specifico per questa voce del carrello)
                         if (postiGiaOccupati + item.NumeroPersone > capienzaMax)
                         {
                             throw new Exception($"'{postazione.Nome}': spazio insufficiente (Richiesti: {item.NumeroPersone}, Liberi: {capienzaMax - postiGiaOccupati}).");
@@ -119,26 +110,23 @@ namespace Template.Web.Features.Prenotazione
                     }
                     else
                     {
-                        // Uffici/Meeting: Uso esclusivo
                         if (postiGiaOccupati > 0)
                         {
                             throw new Exception($"'{postazione.Nome}' è già occupata.");
                         }
                     }
 
-                    // Creazione Prenotazione
                     _dbContext.Prenotazioni.Add(new Template.Entities.Prenotazione
                     {
                         PostazioneId = postazione.Id,
                         DataPrenotazione = request.Data,
                         UserId = userId,
-                        NumeroPersone = item.NumeroPersone, // Salva il numero specifico dell'item
+                        NumeroPersone = item.NumeroPersone,
                         DataCreazione = DateTime.UtcNow,
                         IsCancellata = false
                     });
                 }
 
-                // 3. Salvataggio e Commit
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -146,13 +134,11 @@ namespace Template.Web.Features.Prenotazione
             }
             catch (Exception ex)
             {
-                // Se c'è un errore, annulla tutto
                 await transaction.RollbackAsync();
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
 
-        // --- FUNZIONI DI SUPPORTO (Intoccate) ---
         private static int CalcolaMq(string tipo, int id) => tipo switch
         {
             "Singola" => 52, "Team" => 25, "Riunioni" => 23, "Eventi" => 112, "Ristorante" => 77, _ => 0
