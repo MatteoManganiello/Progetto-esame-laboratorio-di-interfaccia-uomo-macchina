@@ -1,16 +1,40 @@
 .sidebar-area {
     background-color: #ffffff;
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.03);
-    padding: 2rem;
     display: flex;
     flex-direction: column;
     height: 100%;
     position: relative;
     z-index: 100;
     overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 100px;
     
-    flex: 1;
-    min-width: 350px;
+    width: clamp(300px, 28vw, 450px);
+    font-size: clamp(13px, 0.9vw, 16px);
+    padding: clamp(1rem, 2vw, 2rem);
+    flex-shrink: 0;
+}
+
+.sidebar-area .flex-grow-1 {
+    
+    padding: 3rem 0.5rem 0.5rem 0.5rem !important;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.sidebar-logo-wrapper {
+    width: 80%;
+    max-width: 450px;
+    margin: 0 auto;
+    display: block;
+}
+
+.sidebar-logo-wrapper img {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
 }
 
 .booking-card {
@@ -24,7 +48,7 @@
 }
 
 .input-group-lg .form-select {
-    font-size: 1.1rem;
+    font-size: 1.1em;
     font-weight: 600;
     color: #495057;
     cursor: pointer;
@@ -47,8 +71,8 @@
 }
 
 .legend-indicator {
-    width: 14px;
-    height: 14px;
+    width: 1em;
+    height: 1em;
     display: inline-block;
     border-radius: 4px;
     margin-right: 10px;
@@ -83,11 +107,12 @@
 
 @media (max-width: 900px) {
     .sidebar-area {
+        width: 100%;
+        max-width: none;
+        height: auto;
         border-left: none;
         border-top: 1px solid #e9ecef;
         box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-        
-   
     }
 }
 
