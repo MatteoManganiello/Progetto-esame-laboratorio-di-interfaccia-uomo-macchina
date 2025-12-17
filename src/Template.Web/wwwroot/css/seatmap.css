@@ -114,27 +114,25 @@
 }
 
 .custom-tooltip {
-            position: fixed;       /* Segue lo schermo, non la mappa */
-            z-index: 9999;         /* Sta SOPRA a tutto, sovrapposto */
-            background-color: rgba(33, 37, 41, 0.9); /* Sfondo scuro semitrasparente (stile descrizione) */
-            color: #fff;           /* Testo bianco */
+            position: fixed;       
+            z-index: 9999;         
+            background-color: rgba(33, 37, 41, 0.9); 
+            color: #fff;           
             padding: 8px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
-            pointer-events: none;  /* FONDAMENTALE: il mouse ignora il box, così non sfarfalla */
-            white-space: nowrap;   /* Evita che il testo vada a capo bruscamente */
+            pointer-events: none;  
+            white-space: nowrap;   
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            
-            /* TRUCCO PER CENTRARLO SOPRA IL CURSORE */
             transform: translate(-50%, -120%); 
-            /* -50% sposta a sinistra per centrarlo, -120% lo sposta sopra il dito/cursore */
+            
         }
 
-        /* Freccetta in basso (opzionale, per effetto fumetto) */
+        
         .custom-tooltip::after {
             content: "";
             position: absolute;
-            top: 100%; /* Subito sotto il box */
+            top: 100%; 
             left: 50%;
             margin-left: -5px;
             border-width: 5px;
