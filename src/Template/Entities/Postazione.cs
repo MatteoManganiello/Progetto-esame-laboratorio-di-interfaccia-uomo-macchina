@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Template.Entities // <--- Corretto: siamo nella cartella Entities
+namespace Template.Entities 
 {
     [Table("Postazioni")]
     public class Postazione
     {
-        // Costruttore: Inizializza la lista per evitare crash (NullReference)
+        
         public Postazione()
         {
             Prenotazioni = new HashSet<Prenotazione>();
@@ -29,12 +29,9 @@ namespace Template.Entities // <--- Corretto: siamo nella cartella Entities
         public int Width { get; set; }
         public int Height { get; set; }
 
-        // --- NUOVA PROPRIETÀ ---
+       
         public int PostiTotali { get; set; } = 1; 
-        // ------------------------
-
-        // Relazione con le prenotazioni
-        // Poiché anche la classe 'Prenotazione' è in Template.Entities, non servono 'using' extra.
+        
         public virtual ICollection<Prenotazione> Prenotazioni { get; set; }
     }
 }

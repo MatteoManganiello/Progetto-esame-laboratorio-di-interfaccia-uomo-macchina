@@ -16,14 +16,12 @@ namespace Template.Web.Features.Register
             _dbContext = dbContext;
         }
 
-        // *** AGGIUNTO "virtual" QUI SOTTO ***
         [HttpGet]
         public virtual IActionResult Register() 
         {
             return View();
         }
 
-        // *** AGGIUNTO "virtual" ANCHE QUI SOTTO ***
         [HttpPost]
         public virtual async Task<IActionResult> Register(RegisterViewModel model)
         {
