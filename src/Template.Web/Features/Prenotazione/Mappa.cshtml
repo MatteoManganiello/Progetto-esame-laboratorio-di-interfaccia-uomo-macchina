@@ -2,6 +2,16 @@
     ViewData["Title"] = "Planimetria Ufficio";
 }
 
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        window.dashboardData = @Json.Serialize(ViewBag.DashboardData);
+    </script>
+    
+    <script src="~/js/prenotazione.js" asp-append-version="true"></script>
+}
+
 @section styles {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -12,6 +22,7 @@
     <link rel="stylesheet" href="~/css/infocards.css" asp-append-version="true" />
 
 }
+
 
 <div id="app-prenotazione" class="container-fluid py-4">
 
@@ -24,22 +35,28 @@
 
         <div class="d-flex gap-2">
             <a href="#faq-section"
-                class="btn btn-info text-white border shadow-sm p-2 rounded d-flex align-items-center gap-2"
-                style="min-width: 110px; justify-content: center;">
+                class="btn btn-info text-white border shadow-sm px-3 rounded d-flex align-items-center gap-2"
+                style="min-width: 110px; height: 48px; justify-content: center;">
                 <i class="fa-solid fa-book-open"></i>
                 <span class="d-none d-md-inline fw-bold">Guida, leggi prima di iniziare con la prenotazione</span>
             </a>
 
-            <a href="#faq-section" class="btn border shadow-sm p-2 rounded d-flex align-items-center gap-2 text-white"
-                style="background-color: #6f42c1; border-color: #6f42c1; min-width: 110px; justify-content: center;">
+            <a href="#faq-section" class="btn border shadow-sm px-3 rounded d-flex align-items-center gap-2 text-white"
+                style="background-color: #6f42c1; border-color: #6f42c1; min-width: 110px; height: 48px; justify-content: center;">
                 <i class="fa-solid fa-circle-question"></i>
                 <span class="d-none d-md-inline fw-bold">FAQ</span>
             </a>
         </div>
 
-        <div class="bg-white p-2 rounded border shadow-sm">
-            <input type="date" class="form-control border-0 fw-bold p-0" style="width: 130px" v-model="dataSelezionata"
-                v-on:change="caricaDatiMappa">
+        <div class="bg-primary px-3 rounded border shadow-sm d-flex align-items-center" style="height: 48px;">
+
+            <span class="text-white fw-bold small text-uppercase me-2" style="white-space: nowrap;">
+                Scegli data:
+            </span>
+
+            <input type="date" class="form-control border-0 fw-bold p-1 text-center"
+                style="outline: none; box-shadow: none; width: 130px; background-color: rgba(255,255,255,0.9);"
+                v-model="dataSelezionata" v-on:change="caricaDatiMappa">
         </div>
 
     </div>
@@ -86,8 +103,8 @@
                                 <span>{{ tooltip.dati.metriQuadri }} m²</span>
                             </div>
 
-                            <div v-if="tooltip.dati.haProiettore || tooltip.dati.haFinestre"
-                                class="d-flex gap-3 mt-1 align-items-center">
+                            <div v-if="tooltip.dati.haProiettore || tooltip.dati.haFinestre || tooltip.dati.haledwall || tooltip.dati.haArmadietto"
+                                class="d-flex flex-column gap-1 mt-1 align-items-start">
 
                                 <span v-if="tooltip.dati.haledwall" title="Ledwall">
                                     <i class="fa-solid fa-video me-1"></i> LED WALL
@@ -96,11 +113,15 @@
                                 <span v-if="tooltip.dati.haProiettore" title="Lavagna">
                                     <i class="fa-solid fa-video me-1"></i> LAVAGNA INTERATTIVA
                                 </span>
+
                                 <span v-if="tooltip.dati.haFinestre" title="Luce Naturale">
-                                    <i class="fa-regular fa-sun me-1"></i> Finestra
+                                    <i class="fa-regular fa-sun me-2"></i> Finestra
+                                </span>
+
+                                <span v-if="tooltip.dati.haArmadietto" title="locker">
+                                    <i class="fa-solid fa-lock me-2"></i> Armadietto (Locker)
                                 </span>
                             </div>
-
                             <div v-if="tooltip.dati.descrizione" class="mt-2 fst-italic text-white-50"
                                 style="white-space: normal; max-width: 200px; line-height: 1.2;">
                                 {{ tooltip.dati.descrizione }}
@@ -217,253 +238,3 @@
 
 </div>
 
-@section scripts {
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <script>
-        window.dashboardData = @Json.Serialize(ViewBag.DashboardData);
-    </script>
-
-    <script>
-        const { createApp } = Vue;
-        createApp({
-            data() {
-                // Recupero dati dal server (se presenti)
-                const dbData = window.dashboardData || {};
-
-                return {
-                    loading: false,
-                    loadingBtn: false,
-                    dataSelezionata: new Date().toISOString().split('T')[0],
-                    postazioni: [],
-                    postazioneSelezionata: null,
-                    numeroPostiRichiesti: 1,
-                    tooltip: { visibile: false, dati: null, x: 0, y: 0 },
-
-                    // --- NOVITÀ: CARRELLO ---
-                    carrello: [],
-
-                    // Nome Intestatario (Recuperato dal backend o vuoto)
-                    nomePrenotazione: dbData.nomeUtente || '',
-
-                    // --- DATI CARD INFORMATIVE (Con fallback) ---
-                    storicoOrdini: dbData.storicoOrdini || [],
-                    novita: dbData.novita || [
-                        { data: 'Oggi', titolo: 'Nuova Area Relax', contenuto: 'Inaugurata la zona relax al 2° piano.' },
-                        { data: 'Ieri', titolo: 'Manutenzione Wi-Fi', contenuto: 'Domani manutenzione programmata.' }
-                    ],
-                    menuSettimanale: dbData.menuSettimanale || {
-                        'Lun': 'Lasagne alla Bolognese',
-                        'Mar': 'Risotto ai Funghi',
-                        'Mer': 'Pollo al Curry',
-                        'Gio': 'Gnocchi al Pesto',
-                        'Ven': 'Orata con Patate'
-                    }
-                }
-            },
-
-            computed: {
-                stats() {
-                    if (!this.postazioni || this.postazioni.length === 0) {
-                        return { totali: 0, occupati: 0, liberi: 0, percentuale: 0 };
-                    }
-
-                    let totali = 0;
-                    let occupati = 0;
-
-                    this.postazioni.forEach(p => {
-                        if (p.tipo === 'Ristorante') {
-                            totali += p.postiTotali;
-                            occupati += p.postiOccupati;
-                        } else {
-                            totali += 1;
-                            occupati += (p.isOccupata ? 1 : 0);
-                        }
-                    });
-
-                    let liberi = totali - occupati;
-                    let perc = totali > 0 ? Math.round((occupati / totali) * 100) : 0;
-
-                    return { totali, occupati, liberi, percentuale: perc };
-                }
-            },
-
-            mounted() {
-                this.caricaDatiMappa();
-            },
-
-            methods: {
-                caricaDatiMappa() {
-                    this.loading = true;
-                    this.postazioneSelezionata = null;
-                    fetch(`/Prenotazione/GetDatiMappa?data=${this.dataSelezionata}`)
-                        .then(r => r.json())
-                        .then(d => {
-                            this.postazioni = d;
-                            this.loading = false;
-                        })
-                        .catch(e => { console.error(e); this.loading = false; });
-                },
-
-                getStatoClasse(p) {
-                    if (this.postazioneSelezionata && this.postazioneSelezionata.id === p.id) return "status-selected";
-
-                    // Verifica se è nel carrello (opzionale, per dargli un colore diverso)
-                    if (this.carrello.some(x => x.postazione.id === p.id)) return "status-selected";
-
-                    if (p.tipo === 'Ristorante') {
-                        if (p.postiOccupati >= p.postiTotali) return "status-booked";
-                        if (p.postiOccupati > 0) return "status-partial";
-                        return "status-free";
-                    }
-                    return p.isOccupata ? "status-booked" : "status-free";
-                },
-
-                selezionaPostazione(p) {
-                    // Impedisci selezione se occupato
-                    if (p.tipo === 'Ristorante' && p.postiOccupati >= p.postiTotali) return;
-                    if (p.tipo !== 'Ristorante' && p.isOccupata) return;
-
-                    this.postazioneSelezionata = p;
-                    this.numeroPostiRichiesti = 1;
-
-                    // Se l'utente non ha un nome, proviamo a ricaricarlo (UX)
-                    if (!this.nomePrenotazione && window.dashboardData && window.dashboardData.nomeUtente) {
-                        this.nomePrenotazione = window.dashboardData.nomeUtente;
-                    }
-                },
-
-                // --- NUOVI METODI CARRELLO ---
-
-                aggiungiAlCarrello() {
-                    if (!this.postazioneSelezionata) return;
-
-                    // Controlla se esiste già
-                    let index = this.carrello.findIndex(x => x.postazione.id === this.postazioneSelezionata.id);
-
-                    let item = {
-                        postazione: this.postazioneSelezionata,
-                        numeroPersone: parseInt(this.numeroPostiRichiesti)
-                    };
-
-                    if (index > -1) {
-                        // Aggiorna esistente
-                        this.carrello[index] = item;
-                    } else {
-                        // Aggiungi nuovo
-                        this.carrello.push(item);
-                    }
-
-                    // Chiudi selezione
-                    this.postazioneSelezionata = null;
-                },
-
-                rimuoviDalCarrello(id) {
-                    this.carrello = this.carrello.filter(x => x.postazione.id !== id);
-                },
-
-                // --- NUOVA LOGICA DI CONFERMA (Invia Lista Elementi) ---
-                confermaPrenotazione() {
-                    // Se l'utente ha una selezione aperta ma non l'ha aggiunta al carrello, aggiungiamola ora
-                    if (this.postazioneSelezionata) {
-                        this.aggiungiAlCarrello();
-                    }
-
-                    if (this.carrello.length === 0) return;
-
-                    this.loadingBtn = true;
-
-                    // Prepariamo la lista 'Elementi' come vuole il C#
-                    let elementiApi = this.carrello.map(item => ({
-                        PostazioneId: item.postazione.id,
-                        NumeroPersone: item.numeroPersone
-                    }));
-
-                    let payload = {
-                        Data: this.dataSelezionata,
-                        Elementi: elementiApi, // <--- LISTA NUOVA
-                        // Intestatario: this.nomePrenotazione (Opzionale, il backend ora lo ignora o lo usa come log)
-                    };
-
-                    fetch('/Prenotazione/Prenota', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    }).then(async r => {
-                        this.loadingBtn = false;
-                        const res = await r.json();
-
-                        if (r.ok) {
-                            alert("✅ " + res.message);
-
-                            // Aggiorno storico ordini (solo visivo)
-                            this.carrello.forEach(item => {
-                                this.storicoOrdini.unshift({
-                                    data: 'Adesso',
-                                    descrizione: item.postazione.nome + (item.postazione.tipo === 'Ristorante' ? ` (x${item.numeroPersone})` : ''),
-                                    tipo: item.postazione.tipo,
-                                    prezzo: this.getPrezzoItem(item)
-                                });
-                            });
-
-                            // Reset
-                            this.carrello = [];
-                            this.postazioneSelezionata = null;
-                            this.caricaDatiMappa(); // Ricarica per vedere i rossi
-                        } else {
-                            alert("❌ Errore: " + (res.message || "Qualcosa è andato storto"));
-                        }
-                    }).catch(err => {
-                        this.loadingBtn = false;
-                        console.error(err);
-                        alert("❌ Errore di connessione al server.");
-                    });
-                },
-
-                // --- CALCOLO PREZZI ---
-                getPrezzoUnitario(tipo) {
-                    switch (tipo) {
-                        case 'Singola': return 25;
-                        case 'Team': return 150;
-                        case 'Riunioni': return 80;
-                        case 'Eventi': return 500;
-                        case 'Ristorante': return 15;
-                        default: return 0;
-                    }
-                },
-
-                // Prezzo di una riga del carrello
-                getPrezzoItem(item) {
-                    let base = this.getPrezzoUnitario(item.postazione.tipo);
-                    return item.postazione.tipo === 'Ristorante' ? base * item.numeroPersone : base;
-                },
-
-                // Totale dell'intero carrello
-                getTotaleCarrello() {
-                    return this.carrello.reduce((acc, item) => acc + this.getPrezzoItem(item), 0);
-                },
-
-                // Prezzo della selezione corrente (prima di aggiungerla al carrello)
-                getPrezzoTotale() {
-                    if (!this.postazioneSelezionata) return 0;
-                    let base = this.getPrezzoUnitario(this.postazioneSelezionata.tipo);
-                    return this.postazioneSelezionata.tipo === 'Ristorante' ? base * this.numeroPostiRichiesti : base;
-                },
-
-                // --- TOOLTIP ---
-                mostraTooltip(postazione, event) {
-                    this.tooltip.dati = postazione;
-                    this.tooltip.visibile = true;
-                    this.muoviTooltip(event);
-                },
-                muoviTooltip(event) {
-                    this.tooltip.x = event.clientX;
-                    this.tooltip.y = event.clientY;
-                },
-                nascondiTooltip() {
-                    this.tooltip.visibile = false;
-                }
-            }
-        }).mount('#app-prenotazione');
-    </script>
-}
