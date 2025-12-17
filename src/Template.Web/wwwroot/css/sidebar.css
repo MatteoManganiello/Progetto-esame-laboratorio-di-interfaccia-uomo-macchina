@@ -157,3 +157,26 @@
 .legend-indicator.bg-danger {
     background-color: #dc3545 !important;
 }
+
+/* Desktop */
+.btn-sm-md {
+    font-size: 1.1rem;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+    .btn-sm-md {
+        font-size: 0.95rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+/* Smartphone */
+@media (max-width: 576px) {
+    .btn-sm-md {
+        font-size: 0.85rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
