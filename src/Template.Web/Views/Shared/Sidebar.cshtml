@@ -1,0 +1,235 @@
+@section styles {
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
+}
+
+
+<div class="flex-grow-1" style="overflow-y: auto; overflow-x: hidden; margin-top: 20%;">
+
+    <div class="flex-grow-1" style="overflow-y: auto; overflow-x: hidden; ">
+
+        <div v-if="carrello && carrello.length > 0" class="mb-4">
+            <div class="bg-white border rounded-4 p-3 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h6 class="fw-bold text-uppercase text-muted small m-0 spacing-1">
+                        <i class="fa-solid fa-basket-shopping me-2"></i>Tuo Carrello
+                    </h6>
+                    <span class="badge bg-primary rounded-pill">{{ carrello.length }}</span>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    <div v-for="item in carrello" :key="item.postazione.id"
+                        class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3 border">
+                        <div>
+                            <div class="fw-bold small text-dark">{{ item.postazione.nome }}</div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">
+                                {{ item.postazione.tipo }} <span v-if="item.postazione.tipo === 'Ristorante'">x{{
+                                    item.numeroPersone }}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-primary small">€{{ getPrezzoItem(item) }}</span>
+                            <button class="btn btn-sm btn-link text-danger p-0"
+                                @@click="rimuoviDalCarrello(item.postazione.id)">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-1">
+                    <span class="small fw-bold text-muted">Totale Carrello</span>
+                    <span class="fw-bold text-primary fs-6">€ {{ getTotaleCarrello() }},00</span>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="postazioneSelezionata" class="animate__animated animate__fadeIn d-flex flex-column">
+
+            <div class="mb-4">
+                <div class="d-flex align-items-center fw-bold small text-uppercase mb-2 spacing-1" :class="{
+                        'text-state-free': postazioneSelezionata.postiOccupati == 0,
+                        'text-state-partial': postazioneSelezionata.postiOccupati > 0 && postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali,
+                        'text-state-full': postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali
+                     }">
+                    <i class="fa-solid me-2"
+                        :class="postazioneSelezionata.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-building'"></i>
+                    {{ postazioneSelezionata.tipo }}
+                </div>
+
+                <h2 class="fw-bolder text-dark m-0 mb-2">{{ postazioneSelezionata.nome }}</h2>
+
+                <span class="badge rounded-pill border" :class="{
+                          'bg-state-free': postazioneSelezionata.postiOccupati == 0,
+                          'bg-state-partial': postazioneSelezionata.postiOccupati > 0 && postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali,
+                          'bg-state-full': postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali
+                      }">
+                    <i class="fa-solid fa-circle me-1 small"></i>
+                    <span v-if="postazioneSelezionata.postiOccupati == 0">Libero</span>
+                    <span v-else-if="postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali">Completo
+                        / Occupato</span>
+                    <span v-else>Parzialmente Occupato</span>
+                </span>
+            </div>
+
+            <div>
+                <div v-if="postazioneSelezionata.tipo === 'Ristorante'"
+                    class="booking-card bg-light rounded-4 p-4 mb-3">
+                    <div v-if="postazioneSelezionata.postiTotali > postazioneSelezionata.postiOccupati">
+                        <label class="form-label fw-bold text-dark mb-3 d-block">Quanti posti vuoi prenotare?</label>
+                        <div class="input-group input-group-lg mb-4 shadow-sm">
+                            <span class="input-group-text bg-white text-primary border-end-0 ps-3">
+                                <i class="fa-solid fa-user-group"></i>
+                            </span>
+                            <select class="form-select border-start-0 fw-bold text-dark ps-2"
+                                v-model="numeroPostiRichiesti" style="box-shadow: none;">
+                                <option
+                                    v-for="n in (postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati)"
+                                    :value="n">
+                                    {{ n }} {{ n === 1 ? 'Persona' : 'Persone' }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-else class="alert alert-danger mb-4 shadow-sm border-0 d-flex align-items-center">
+                        <i class="fa-solid fa-circle-exclamation me-3 fa-lg"></i>
+                        <div><strong>Posti esauriti.</strong></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center small bg-white p-3 rounded-3 border">
+                        <span class="text-muted fw-semibold">Posti disponibili:</span>
+                        <span class="badge rounded-pill px-3 py-2 fs-6" :class="{
+                                  'bg-state-free': postazioneSelezionata.postiOccupati == 0,
+                                  'bg-state-partial': postazioneSelezionata.postiOccupati > 0 && postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali,
+                                  'bg-state-full': postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali
+                              }">
+                            <i class="fa-solid fa-chair me-2 opacity-50"></i>
+                            <strong>{{ postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati
+                                }}</strong>
+                            <span class="opacity-50 mx-1">/</span> {{ postazioneSelezionata.postiTotali }}
+                        </span>
+                    </div>
+                </div>
+
+                <div v-else class="booking-card rounded-4 p-4 mb-3 d-flex align-items-start" :class="{
+                        'bg-state-free': postazioneSelezionata.postiOccupati == 0,
+                        'bg-state-full': postazioneSelezionata.postiOccupati > 0
+                     }">
+                    <div class="bg-white p-3 rounded-circle me-3 shadow-sm" :class="{
+                            'text-state-free': postazioneSelezionata.postiOccupati == 0,
+                            'text-state-full': postazioneSelezionata.postiOccupati > 0
+                         }">
+                        <i class="fa-solid fa-xl"
+                            :class="postazioneSelezionata.postiOccupati == 0 ? 'fa-door-open' : 'fa-door-closed'"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1"
+                            :class="postazioneSelezionata.postiOccupati == 0 ? 'text-state-free' : 'text-state-full'">
+                            {{ postazioneSelezionata.postiOccupati == 0 ? 'Prenotazione Esclusiva' : 'Non Disponibile'
+                            }}
+                        </h5>
+                        <p class="opacity-75 small mb-0 lh-sm"
+                            :class="postazioneSelezionata.postiOccupati == 0 ? 'text-state-free' : 'text-state-full'">
+                            <span v-if="postazioneSelezionata.postiOccupati == 0">Uso esclusivo. Max {{
+                                postazioneSelezionata.postiTotali }} persone.</span>
+                            <span v-else>Questo spazio è già occupato.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div v-if="postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali || (postazioneSelezionata.tipo === 'Ristorante' && postazioneSelezionata.postiTotali > postazioneSelezionata.postiOccupati)"
+                    class="bg-white border rounded-4 p-4 shadow-sm mb-3">
+
+                    <h6 class="fw-bold text-uppercase text-muted small mb-3 spacing-1">Costo Selezione Attuale</h6>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-dark">
+                            <i class="fa-solid fa-tag me-2 text-muted"></i>
+                            <span v-if="postazioneSelezionata.tipo === 'Ristorante'">Menu x {{ numeroPostiRichiesti
+                                }}</span>
+                            <span v-else>Tariffa Giornaliera</span>
+                        </span>
+                        <span class="fw-semibold">
+                            <span v-if="postazioneSelezionata.tipo === 'Ristorante'" class="text-muted small me-2">
+                                ({{ numeroPostiRichiesti }} x €{{ getPrezzoUnitario(postazioneSelezionata.tipo) }})
+                            </span>
+                        </span>
+                    </div>
+
+                    <hr class="my-3 text-muted opacity-25">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-5 text-dark">Prezzo</span>
+                        <span class="fw-bold fs-4 text-primary">€ {{ getPrezzoTotale() }},00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-else-if="!carrello || carrello.length === 0"
+            class="text-center h-100 d-flex flex-column justify-content-center align-items-center animate__animated animate__fadeIn gap-4">
+            <div class="sidebar-logo-wrapper mb-4">
+                <img src="~/images/smarthub_completo.png" alt="Immagine Sidebar">
+            </div>
+
+            <div class="legend-box bg-light p-4 rounded-4 text-start w-100 border-top border-light-subtle shadow-sm">
+                <h6 class="fw-bold small text-uppercase text-muted mb-3 spacing-1 ls-1">Legenda Mappa</h6>
+                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                    <span class="legend-indicator bg-success rounded-2 shadow-sm me-3"></span>
+                    <div><span class="d-block fw-bold text-dark fs-6">Libero</span></div>
+                </div>
+                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                    <span class="legend-indicator bg-warning rounded-2 shadow-sm me-3"></span>
+                    <div><span class="d-block fw-bold text-dark fs-6">Parzialmente Occupato</span></div>
+                </div>
+                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                    <span class="legend-indicator bg-danger rounded-2 shadow-sm me-3"></span>
+                    <div><span class="d-block fw-bold text-dark fs-6">Occupato / Pieno</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="p-4 bg-white z-1">
+
+        <div v-if="postazioneSelezionata || (carrello && carrello.length > 0)"
+            class="alert alert-warning border-warning border-opacity-25 bg-warning bg-opacity-10 rounded-4 d-flex align-items-start mb-3 shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation text-warning mt-1 me-3"></i>
+            <div class="small text-dark opacity-75 lh-sm">
+                <strong>Politica di Rimborso:</strong> Non sarà previsto alcun rimborso se la prenotazione non viene
+                disdetta entro <strong>1 ora</strong> dalla conferma.
+            </div>
+        </div>
+
+<div class="d-grid gap-3">
+
+    <button v-if="postazioneSelezionata"
+        class="btn btn-success btn-lg btn-sm-md py-3 py-md-2 fw-bold shadow-sm rounded-pill text-white"
+        v-on:click="aggiungiAlCarrello">
+        Aggiungi al Carrello 
+    </button>
+
+    <button v-if="carrello && carrello.length > 0"
+        class="btn btn-primary btn-lg btn-sm-md py-3 py-md-2 fw-bold shadow-sm d-flex justify-content-center align-items-center rounded-pill animate__animated animate__pulse animate__faster"
+        v-on:click="confermaPrenotazione"
+        :disabled="loadingBtn">
+
+        <span v-if="loadingBtn" class="spinner-border spinner-border-sm me-2"></span>
+        <i v-else class="fa-solid fa-receipt me-2"></i>
+
+        <span v-if="!loadingBtn">
+            Conferma Ordine ({{ carrello.length }})
+        </span>
+    </button>
+
+    <button v-if="postazioneSelezionata"
+        class="btn btn-danger btn-lg btn-sm-md py-2 py-md-1 fw-bold shadow-sm rounded-pill border-0"
+        v-on:click="postazioneSelezionata = null">
+        Annulla selezione
+    </button>
+
+</div>
+
+
+    </div>
+</div>

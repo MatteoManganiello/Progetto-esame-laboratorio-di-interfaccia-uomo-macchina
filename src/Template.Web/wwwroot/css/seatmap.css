@@ -1,0 +1,158 @@
+:root {
+    --color-desk-stroke: #a0a0a0;
+    --color-chair-fill: #7d7d7d;
+    --color-highlight: #0d6efd;
+}
+
+.seatmap-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.08);
+    border: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    height: 700px;
+    overflow: hidden;
+}
+
+@media (min-width: 992px) {
+    .seatmap-wrapper {
+        flex-direction: row;
+    }
+}
+
+.map-area {
+    flex: 3;
+    background-color: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: auto;
+}
+
+.seat-group {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.seat-group:hover {
+    filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.01);
+}
+
+.desk-shape {
+    stroke: var(--color-desk-stroke);
+    stroke-width: 1.5;
+    fill: #fff;
+}
+
+.chair-shape {
+    fill: var(--color-chair-fill);
+    stroke: #5a5a5a;
+    stroke-width: 1;
+}
+
+.status-free .desk-shape {
+    fill: #f0fdf4;
+    stroke: #16a34a;
+}
+
+.status-free .chair-shape {
+    fill: #16a34a;
+}
+
+.status-booked .desk-shape {
+    fill: #fef2f2;
+    stroke: #dc2626;
+}
+
+.status-booked .chair-shape {
+    fill: #dc2626;
+}
+
+.status-booked {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.status-selected .desk-shape {
+    fill: #eff6ff;
+    stroke: var(--color-highlight);
+    stroke-width: 2.5;
+}
+
+.status-selected .chair-shape {
+    fill: var(--color-highlight);
+}
+
+.type-ristorante.status-partial .desk-shape {
+    fill: #fff3cd;
+    stroke: #ffc107;
+}
+
+.type-ristorante.status-partial .chair-shape {
+    fill: #ffc107;
+}
+
+.type-ristorante.status-free .desk-shape {
+    fill: #f0fdf4;
+    stroke: #16a34a;
+}
+
+.type-ristorante.status-free .chair-shape {
+    fill: #16a34a;
+}
+
+.map-label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    fill: #6c757d;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+.custom-tooltip {
+            position: fixed;       
+            z-index: 9999;         
+            background-color: rgba(33, 37, 41, 0.9); 
+            color: #fff;           
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            pointer-events: none;  
+            white-space: nowrap;   
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transform: translate(-50%, -120%); 
+            
+        }
+
+        
+        .custom-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%; 
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(33, 37, 41, 0.9) transparent transparent transparent;
+        }
+
+        .tooltip-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+             
+        .h-100-visual { height: 100%; min-height: 600px; }
+        .map-card, .sidebar-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+            padding: 15px;
+            height: 100%;
+        }

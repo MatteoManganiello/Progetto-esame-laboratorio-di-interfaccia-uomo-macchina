@@ -1,0 +1,182 @@
+.sidebar-area {
+    background-color: #ffffff;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    z-index: 100;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 100px;
+    
+    width: clamp(300px, 28vw, 450px);
+    font-size: clamp(13px, 0.9vw, 16px);
+    padding: clamp(1rem, 2vw, 2rem);
+    flex-shrink: 0;
+}
+
+.sidebar-area .flex-grow-1 {
+    
+    padding: 3rem 0.5rem 0.5rem 0.5rem !important;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.sidebar-logo-wrapper {
+    width: 80%;
+    max-width: 450px;
+    margin: 0 auto;
+    display: block;
+}
+
+.sidebar-logo-wrapper img {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+}
+
+.booking-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.input-group-lg .form-select {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+}
+
+.input-group-text {
+    background-color: #fff;
+    border-right: none;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-select {
+    border-color: var(--bs-primary, #0d6efd) !important;
+    color: var(--bs-primary, #0d6efd);
+}
+
+.legend-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.legend-indicator {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    border-radius: 4px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.legend-box .d-flex:hover {
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+.animate__fadeIn {
+    animation: fadeInUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.spacing-1 {
+    letter-spacing: 1px;
+}
+
+@media (max-width: 900px) {
+    .sidebar-area {
+        width: 100%;
+        max-width: none;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid #e9ecef;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+    }
+}
+
+.text-state-free {
+    color: #055160 !important;
+}
+
+.bg-state-free {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+    border-color: #badbcc !important;
+}
+
+.text-state-partial {
+    color: #664d03 !important;
+}
+
+.bg-state-partial {
+    background-color: #ffe69c !important;
+    color: #664d03 !important;
+    border-color: #ffc720 !important;
+}
+
+.text-state-full {
+    color: #842029 !important;
+}
+
+.bg-state-full {
+    background-color: #f8d7da !important;
+    color: #842029 !important;
+    border-color: #f5c2c7 !important;
+}
+
+.legend-indicator.bg-success {
+    background-color: #198754 !important;
+}
+
+.legend-indicator.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.legend-indicator.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* Desktop */
+.btn-sm-md {
+    font-size: 1.1rem;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+    .btn-sm-md {
+        font-size: 0.95rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+/* Smartphone */
+@media (max-width: 576px) {
+    .btn-sm-md {
+        font-size: 0.85rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}

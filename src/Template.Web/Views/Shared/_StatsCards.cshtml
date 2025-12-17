@@ -1,0 +1,56 @@
+<div v-if="!loading" class="row mt-4 animate__animated animate__fadeInUp">
+    
+    <div class="col-md-4 mb-3 mb-md-0 ">
+        <div class="card border border-dark border-opacity-10 shadow-sm h-100 overflow-hidden">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-primary">
+                    <i class="fa-solid fa-building fa-2x"></i>
+                </div>
+                <div>
+                    <h6 class="card-subtitle text-muted text-uppercase small fw-bold mb-1">Capienza Totale</h6>
+                    <h2 class="card-title mb-0 fw-bold text-dark">{{ stats.totali }}</h2>
+                </div>
+            </div>
+            <div class="progress" style="height: 4px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card border border-dark border-opacity-10 shadow-sm h-100 overflow-hidden">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                    <i class="fa-solid fa-check-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h6 class="card-subtitle text-muted text-uppercase small fw-bold mb-1">Posti Liberi</h6>
+                    <h2 class="card-title mb-0 fw-bold text-success">{{ stats.liberi }}</h2>
+                </div>
+            </div>
+            <div class="progress" style="height: 4px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     :style="{ width: (stats.totali > 0 ? (stats.liberi / stats.totali * 100) : 0) + '%' }">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border border-dark border-opacity-10 shadow-sm h-100 overflow-hidden">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3 text-danger">
+                    <i class="fa-solid fa-chart-pie fa-2x"></i>
+                </div>
+                <div>
+                    <h6 class="card-subtitle text-muted text-uppercase small fw-bold mb-1">Postazioni occupate</h6>
+                    <h2 class="card-title mb-0 fw-bold text-danger">{{ stats.percentuale }}%</h2>
+                </div>
+            </div>
+            <div class="progress" style="height: 4px;">
+                <div class="progress-bar bg-danger" role="progressbar" :style="{ width: stats.percentuale + '%' }"></div>
+            </div>
+        </div>
+    </div>
+
+</div>

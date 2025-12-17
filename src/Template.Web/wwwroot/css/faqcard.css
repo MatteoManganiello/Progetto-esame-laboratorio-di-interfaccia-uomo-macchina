@@ -1,0 +1,90 @@
+/* --- STILI CARD FAQ (DESTRA) --- */
+.faq-main-card {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 12px;
+    min-height: 550px;
+}
+
+/* SFONDO VIOLA CHIARO */
+.bg-purple-soft {
+    background-color: #f3ebff; 
+}
+
+/* CAROSELLO IMMAGINI */
+.object-fit-cover {
+    object-fit: cover;
+    object-position: center;
+}
+
+.overlay-gradient {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.1) 100%);
+}
+
+.pointer-events-none {
+    pointer-events: none;
+}
+
+/* --- STILI ACCORDION --- */
+.custom-accordion .accordion-item {
+    border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.custom-accordion .accordion-button {
+    box-shadow: none !important;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+.custom-accordion .accordion-button:not(.collapsed) {
+    color: #6f42c1; /* Testo viola quando aperto */
+    background-color: #fff; 
+    font-weight: 700;
+}
+
+.custom-accordion .accordion-button::after {
+    background-size: 0.9rem;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+
+.custom-accordion .accordion-body {
+    line-height: 1.6;
+}
+
+/* --- STILI CARD GUIDA (SINISTRA) --- */
+
+/* Base della card dashboard (assicura angoli e hover) */
+.dashboard-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff; /* Fallback */
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+}
+
+/* Cerchi numerati (Step 1, 2, 3) */
+.step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    /* Ombra Rossa leggera per abbinarsi al tema */
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.25); 
+}
+
+/* --- MEDIA QUERIES --- */
+@media (max-width: 1200px) {
+    .faq-carousel-col {
+        display: none;
+    }
+}

@@ -1,0 +1,86 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Options
+@using Template.Web
+@using Template.Web.Infrastructure
+
+@inject IHtmlLocalizer<Template.Web.SharedResource> SharedLocalizer
+@inject IOptions<AppSettings> appSettings
+@{
+    Layout = "_LayoutHtml";
+    var version = typeof(Startup).Assembly.GetName().Version;
+}
+
+@section metas{
+    @RenderSection("metas", false)
+}
+
+@section styles{
+    @RenderSection("styles", false)
+}
+
+<div id="pageId" class="onit-page">
+    <div class="onit-page-sticky-top" id="onit-page-sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm onit-page-menu">
+            <div class="container-fluid">
+                
+                <a class="navbar-brand" href="/">
+                    <img class="onit-suites-logo" src="~/images/smarthub.png" alt="Logo" style="max-height: 80px;" />
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        </ul>
+
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item me-3">
+                                <span class="text-dark">
+                                    Ciao, <b>@User.Identity.Name</b>
+                                </span>
+                            </li>
+                            
+                            <li class="nav-item btn bg-danger btn-sm shadow-sm">
+                                <form asp-controller="Login" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class=" font-bold btn btn-outline-danger btn-sm text-white">
+                                        ESCI
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-primary btn-sm" asp-controller="Login" asp-action="Login">Accedi</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary btn-sm" asp-controller="Register" asp-action="Register">Registrati</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        @RenderSection("pageTitle", false)
+    </div>
+
+    @RenderSection("pageSubtitle", false)
+    
+    <div class="container-fluid mt-4">
+        @RenderBody()
+    </div>
+</div>
+
+@section scripts{
+    @try { 
+        @Html.Raw(this.RenderAlertsWithToastify()) 
+    } catch { }
+    @RenderSection("scripts", false)
+}
