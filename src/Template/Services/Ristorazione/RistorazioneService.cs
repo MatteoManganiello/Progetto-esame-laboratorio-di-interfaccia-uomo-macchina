@@ -139,7 +139,8 @@ namespace Template.Services.Ristorazione
                             UserId = userId,
                             NumeroPersone = 1,
                             DataCreazione = DateTime.UtcNow,
-                            IsCancellata = false
+                            IsCancellata = false,
+                            Prezzo = CalcolaPrezzoRistorante()
                         });
                     }
 
@@ -173,6 +174,8 @@ namespace Template.Services.Ristorazione
                 };
             }
         }
+
+        private static decimal CalcolaPrezzoRistorante() => 15m;
     }
 
     public class PrenotaTavoloRequest
@@ -186,4 +189,5 @@ namespace Template.Services.Ristorazione
         [Range(1, 10, ErrorMessage = "Numero posti deve essere tra 1 e 10")]
         public int NumeroPosti { get; set; }
     }
+
 }

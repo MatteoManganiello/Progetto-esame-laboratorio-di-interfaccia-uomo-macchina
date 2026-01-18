@@ -48,7 +48,10 @@ namespace Template.Services.Prenotazioni
                 PostazioneId = cmd.PostazioneId,
                 DataPrenotazione = cmd.Data,
                 UserId = cmd.UserId.ToString(),
-                DataCreazione = DateTime.UtcNow 
+                DataCreazione = DateTime.UtcNow,
+                NumeroPersone = 1,
+                IsCancellata = false,
+                Prezzo = CalcolaPrezzo(postazione.Tipo, 1)
             };
 
             _dbContext.Prenotazioni.Add(nuovaPrenotazione);
@@ -56,6 +59,21 @@ namespace Template.Services.Prenotazioni
             await _dbContext.SaveChangesAsync();
 
             return true;
+        }
+
+        private static decimal CalcolaPrezzo(string tipo, int numeroPersone)
+        {
+            decimal basePrezzo = tipo switch
+            {
+                "Singola" => 25m,
+                "Team" => 150m,
+                "Riunioni" => 80m,
+                "Eventi" => 500m,
+                "Ristorante" => 15m,
+                _ => 0m
+            };
+
+            return tipo == "Ristorante" ? basePrezzo * Math.Max(numeroPersone, 1) : basePrezzo;
         }
     }
 }

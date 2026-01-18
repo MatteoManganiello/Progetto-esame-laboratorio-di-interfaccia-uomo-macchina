@@ -81,11 +81,25 @@ namespace Template.Web.Features.Login
 
         private async Task<ActionResult> LoginAndRedirect(string username, string userId, string returnUrl, bool rememberMe)
         {
+            // Recupera l'utente per ottenere il ruolo
+            var utente = await _userQueries.Query(new UserDetailQuery { Id = Guid.Parse(userId) });
+            var ruolo = utente?.Ruolo ?? RuoliCostanti.USER;
+            
+            Console.WriteLine($"[DEBUG LoginAndRedirect] Utente trovato: {utente?.Email}");
+            Console.WriteLine($"[DEBUG LoginAndRedirect] Utente.Ruolo dal database: '{utente?.Ruolo}' (è null? {utente?.Ruolo == null})");
+            Console.WriteLine($"[DEBUG LoginAndRedirect] ruolo utilizzato per il confronto: '{ruolo}'");
+            Console.WriteLine($"[DEBUG LoginAndRedirect] RuoliCostanti.SUPER_ADMIN = '{RuoliCostanti.SUPER_ADMIN}'");
+            Console.WriteLine($"[DEBUG LoginAndRedirect] RuoliCostanti.ADMIN = '{RuoliCostanti.ADMIN}'");
+            Console.WriteLine($"[DEBUG LoginAndRedirect] Confronto SUPER_ADMIN: ruolo == RuoliCostanti.SUPER_ADMIN = {ruolo == RuoliCostanti.SUPER_ADMIN}");
+            Console.WriteLine($"[DEBUG LoginAndRedirect] Confronto ADMIN: ruolo == RuoliCostanti.ADMIN = {ruolo == RuoliCostanti.ADMIN}");
+
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Email, username)
+                new Claim(ClaimTypes.Email, username),
+                new Claim("Ruolo", ruolo)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -100,6 +114,24 @@ namespace Template.Web.Features.Login
                 });
 
             Console.WriteLine("[DEBUG LOGIN] Cookie creato. Reindirizzamento...");
+            Console.WriteLine($"[DEBUG] Ruolo recuperato: '{ruolo}'");
+            Console.WriteLine($"[DEBUG] RuoliCostanti.SUPER_ADMIN: '{RuoliCostanti.SUPER_ADMIN}'");
+            Console.WriteLine($"[DEBUG] Confronto SUPER_ADMIN: {ruolo == RuoliCostanti.SUPER_ADMIN}");
+
+            // Reindirizza in base al ruolo
+            if (ruolo == RuoliCostanti.SUPER_ADMIN)
+            {
+                Console.WriteLine("[DEBUG] Reindirizzamento a SuperAdmin/Dashboard");
+                return RedirectToAction("Dashboard", "SuperAdmin");
+            }
+
+            if (ruolo == RuoliCostanti.ADMIN)
+            {
+                Console.WriteLine("[DEBUG] Reindirizzamento a Admin/Dashboard");
+                return RedirectToAction("Dashboard", "Admin");
+            }
+            
+            Console.WriteLine("[DEBUG] Reindirizzamento a Prenotazione/Mappa");
 
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);

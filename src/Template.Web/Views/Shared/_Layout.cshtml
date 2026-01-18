@@ -40,11 +40,49 @@
                     <ul class="navbar-nav ms-auto align-items-center">
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
+                            var userRole = User.FindFirst("Ruolo")?.Value ?? "User";
+                            var badgeClass = userRole == "SuperAdmin" ? "bg-danger" : 
+                                           userRole == "Admin" ? "bg-warning" : 
+                                           "bg-info";
+                            var roleDisplay = userRole == "SuperAdmin" ? "Super Admin" :
+                                             userRole == "Admin" ? "Admin" :
+                                             "Utente";
+                            
                             <li class="nav-item me-3">
                                 <span class="text-dark">
                                     Ciao, <b>@User.Identity.Name</b>
                                 </span>
                             </li>
+                            <li class="nav-item me-2">
+                                <span class="badge @badgeClass text-white">@roleDisplay</span>
+                            </li>
+
+                            @if (userRole == "SuperAdmin")
+                            {
+                                <li class="nav-item me-2">
+                                    <a class="btn btn-outline-danger btn-sm" asp-controller="SuperAdmin" asp-action="Dashboard">
+                                        <i class="fa-solid fa-chart-line me-1"></i>SuperAdmin
+                                    </a>
+                                </li>
+                                <li class="nav-item me-2">
+                                    <a class="btn btn-outline-warning btn-sm" asp-controller="Admin" asp-action="Dashboard">
+                                        <i class="fa-solid fa-sliders me-1"></i>Admin
+                                    </a>
+                                </li>
+                                <li class="nav-item me-2">
+                                    <a class="btn btn-outline-info btn-sm" asp-controller="Prenotazione" asp-action="Mappa">
+                                        <i class="fa-solid fa-map me-1"></i>Utente
+                                    </a>
+                                </li>
+                            }
+                            else if (userRole == "Admin")
+                            {
+                                <li class="nav-item me-2">
+                                    <a class="btn btn-outline-warning btn-sm" asp-controller="Admin" asp-action="Dashboard">
+                                        <i class="fa-solid fa-sliders me-1"></i>Admin
+                                    </a>
+                                </li>
+                            }
                             
                             <li class="nav-item btn bg-danger btn-sm shadow-sm">
                                 <form asp-controller="Login" asp-action="Logout" method="post" class="d-inline">
@@ -56,12 +94,6 @@
                         }
                         else
                         {
-                            <li class="nav-item me-2">
-                                <a class="btn btn-outline-primary btn-sm" asp-controller="Login" asp-action="Login">Accedi</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-primary btn-sm" asp-controller="Register" asp-action="Register">Registrati</a>
-                            </li>
                         }
                     </ul>
                 </div>

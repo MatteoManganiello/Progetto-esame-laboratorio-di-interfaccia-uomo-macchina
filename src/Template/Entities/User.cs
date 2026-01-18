@@ -18,6 +18,11 @@ namespace Template.Entities
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string NickName { get; set; }
+        
+        /// <summary>
+        /// Ruolo dell'utente: "User", "Admin", "SuperAdmin"
+        /// </summary>
+        public string Ruolo { get; set; } = "User";
 
         public bool IsMatchWithPassword(string passwordDaControllare)
         {

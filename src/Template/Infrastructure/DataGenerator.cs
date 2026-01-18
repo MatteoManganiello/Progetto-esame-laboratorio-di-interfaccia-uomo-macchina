@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,41 +23,170 @@ namespace Template.Infrastructure
 
                 Console.WriteLine("--> GENERAZIONE DATI DI PROVA...");
 
-                // 1. CREIAMO GLI UTENTI
-                var user1 = new User
+                // 1. CREIAMO GLI UTENTI CON RUOLI DIVERSI
+                var superAdmin = new User
+                {
+                    Email = "superadmin@test.com",
+                    FirstName = "Admin",
+                    LastName = "Super",
+                    NickName = "SuperAdmin",
+                    Password = "123",
+                    Ruolo = RuoliCostanti.SUPER_ADMIN
+                };
+
+                var admin = new User
                 {
                     Email = "admin@test.com",
                     FirstName = "Mario",
                     LastName = "Rossi",
-                    NickName = "SuperMario",
-                    Password = "123" // Se hai messo l'hash, qui dovresti mettere l'hash di "123"
+                    NickName = "Admin",
+                    Password = "123",
+                    Ruolo = RuoliCostanti.ADMIN
                 };
-                // Se usi l'hash SHA256, l'hash di "123" (o simile) va calcolato, 
-                // oppure usa il metodo SetPassword se l'hai aggiunto in User.cs.
-                // Per ora assumiamo tu stia testando con password in chiaro o hash semplice.
-                if(string.IsNullOrEmpty(user1.Password)) user1.Password = "123";
 
-                context.Users.AddRange(user1);
+                var user = new User
+                {
+                    Email = "user@test.com",
+                    FirstName = "Giovanni",
+                    LastName = "Bianchi",
+                    NickName = "User",
+                    Password = "123",
+                    Ruolo = RuoliCostanti.USER
+                };
 
-                // 2. CREIAMO LE POSTAZIONI (Mappa dell'ufficio)
-                // Esempio basato sul tuo screenshot della mappa
-                context.Postazioni.AddRange(
-                    // Sala Eventi (Grande a sinistra)
-                    new Postazione { Nome = "SALA EVENTI", Tipo = "Eventi", X = 0, Y = 0, Width = 400, Height = 300, PostiTotali = 50 },
-                    
-                    // Desk Room (Al centro)
-                    new Postazione { Nome = "DESK ROOM", Tipo = "Singola", X = 410, Y = 0, Width = 200, Height = 300, PostiTotali = 10 },
-                    
-                    // Ristorante (A destra)
-                    new Postazione { Nome = "RISTORANTE", Tipo = "Ristorante", X = 620, Y = 0, Width = 200, Height = 600, PostiTotali = 20 },
+                context.Users.AddRange(superAdmin, admin, user);
 
-                    // Stanze in basso (Meeting e Dev Team)
-                    new Postazione { Nome = "MEETING A", Tipo = "Riunioni", X = 0, Y = 310, Width = 150, Height = 200, PostiTotali = 6 },
-                    new Postazione { Nome = "DEV TEAM 1", Tipo = "Team", X = 160, Y = 310, Width = 150, Height = 200, PostiTotali = 4 },
-                    new Postazione { Nome = "DEV TEAM 2", Tipo = "Team", X = 320, Y = 310, Width = 150, Height = 200, PostiTotali = 4 },
-                    new Postazione { Nome = "MEETING B", Tipo = "Riunioni", X = 480, Y = 310, Width = 140, Height = 200, PostiTotali = 6 }
-                );
+                // 2. CREIAMO LE POSTAZIONI (Layout originale della mappa)
+                var postazioni = new List<Postazione>();
+                int idCounter = 1;
 
+                // Main Hall (Sala eventi grande)
+                postazioni.Add(new Postazione 
+                { 
+                    CodiceUnivoco = "event-main", 
+                    Nome = "Main Hall", 
+                    Tipo = "Eventi", 
+                    X = 35, 
+                    Y = 30, 
+                    Width = 350, 
+                    Height = 250, 
+                    PostiTotali = 50 
+                });
+
+                // Desk individuali (griglia 5x3)
+                for (int r = 0; r < 5; r++) 
+                { 
+                    for (int c = 0; c < 3; c++) 
+                    { 
+                        postazioni.Add(new Postazione 
+                        { 
+                            CodiceUnivoco = $"Desk-{idCounter}", 
+                            Nome = $"Desk {idCounter}", 
+                            Tipo = "Singola", 
+                            X = 570 + (c * 50), 
+                            Y = 30 + (r * 50), 
+                            Width = 30,   
+                            Height = 30, 
+                            PostiTotali = 1 
+                        }); 
+                        idCounter++; 
+                    } 
+                }
+
+                // Team rooms
+                postazioni.Add(new Postazione 
+                { 
+                    CodiceUnivoco = "dev-1", 
+                    Nome = "Team Alpha", 
+                    Tipo = "Team", 
+                    X = 250, 
+                    Y = 470, 
+                    Width = 120, 
+                    Height = 80, 
+                    PostiTotali = 6 
+                });
+                
+                postazioni.Add(new Postazione 
+                { 
+                    CodiceUnivoco = "dev-2", 
+                    Nome = "Team Beta", 
+                    Tipo = "Team", 
+                    X = 450, 
+                    Y = 470, 
+                    Width = 120, 
+                    Height = 80, 
+                    PostiTotali = 6 
+                });
+
+                // Meeting rooms
+                postazioni.Add(new Postazione 
+                { 
+                    CodiceUnivoco = "meet-1", 
+                    Nome = "Sala Red", 
+                    Tipo = "Riunioni", 
+                    X = 40, 
+                    Y = 485, 
+                    Width = 125, 
+                    Height = 50, 
+                    PostiTotali = 6 
+                });
+                
+                postazioni.Add(new Postazione 
+                { 
+                    CodiceUnivoco = "meet-2", 
+                    Nome = "Sala Blue", 
+                    Tipo = "Riunioni", 
+                    X = 640, 
+                    Y = 485, 
+                    Width = 125, 
+                    Height = 50, 
+                    PostiTotali = 6 
+                });
+
+                // Tavoli ristorante
+                for (int i = 0; i < 3; i++)
+                {
+                    postazioni.Add(new Postazione 
+                    { 
+                        CodiceUnivoco = $"rist-{i+1}", 
+                        Nome = $"Tavolo {i+1}", 
+                        Tipo = "Ristorante", 
+                        X = 820,              
+                        Y = 45 + (i * 115), 
+                        Width = 100,
+                        Height = 50,
+                        PostiTotali = 4
+                    });
+                }
+
+                context.Postazioni.AddRange(postazioni);
+                context.SaveChanges();
+
+                // 3. CREIAMO PRENOTAZIONI DI TEST CON PREZZI
+                var random = new Random();
+                var prenotazioni = new List<Prenotazione>();
+
+                // Creiamo 20 prenotazioni distribuite tra gli utenti
+                for (int i = 0; i < 20; i++)
+                {
+                    var utenteId = i % 3 == 0 ? superAdmin.Id : (i % 3 == 1 ? admin.Id : user.Id);
+                    var prezzo = (decimal)(25 + random.Next(0, 75)); // Prezzi da 25 a 100 euro
+                    var dataPrenotazione = DateTime.Now.AddDays(random.Next(-30, 30)); // Ultimi/prossimi 30 giorni
+
+                    prenotazioni.Add(new Prenotazione
+                    {
+                        UserId = utenteId.ToString(),
+                        PostazioneId = postazioni[random.Next(postazioni.Count)].Id,
+                        DataPrenotazione = dataPrenotazione,
+                        DataCreazione = DateTime.Now.AddDays(random.Next(-30, 0)),
+                        NumeroPersone = random.Next(1, 5),
+                        Prezzo = prezzo,
+                        IsCancellata = random.NextDouble() < 0.1, // 10% cancellate
+                        Note = i % 5 == 0 ? "Prenotazione da testare" : null
+                    });
+                }
+
+                context.Prenotazioni.AddRange(prenotazioni);
                 context.SaveChanges();
                 Console.WriteLine("--> DATI GENERATI CON SUCCESSO!");
             }

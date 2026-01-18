@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"] = "Dashboard Admin";
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 mb-2">
+                <i class="fa-solid fa-sliders text-warning me-2"></i>Dashboard Admin
+            </h1>
+            <p class="text-muted">Gestisci il contenuto e le impostazioni del sito</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Card InfoCards -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="fa-solid fa-rectangle-list me-2"></i>
+                    <h5 class="mb-0">Gestisci Info Cards</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Modifica il contenuto delle card di informazione (Novità, Menù, ecc.)
+                    </p>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <i class="fa-solid fa-check text-success me-2"></i>
+                            <strong>Novità in Azienda</strong> - Comunicazioni ufficiali
+                        </li>
+                        <li class="mb-2">
+                            <i class="fa-solid fa-check text-success me-2"></i>
+                            <strong>Menù della Settimana</strong> - Menu ristorante
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check text-success me-2"></i>
+                            <strong>Ultimi Ordini</strong> - Storico prenotazioni
+                        </li>
+                    </ul>
+                    <a href="@Url.Action("EditInfoCards", "Admin")" class="btn btn-primary">
+                        <i class="fa-solid fa-edit me-2"></i>Modifica
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Utenti (Solo SuperAdmin) -->
+        @if (User.FindFirst("Ruolo")?.Value == "SuperAdmin")
+        {
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-danger text-white d-flex align-items-center">
+                        <i class="fa-solid fa-users-gear me-2"></i>
+                        <h5 class="mb-0">Gestisci Utenti</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            Modifica i ruoli e le autorizzazioni degli utenti
+                        </p>
+                        <ul class="list-unstyled mb-3">
+                            <li class="mb-2">
+                                <i class="fa-solid fa-check text-success me-2"></i>
+                                Assegna ruoli (User, Admin, SuperAdmin)
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa-solid fa-check text-success me-2"></i>
+                                Visualizza tutti gli utenti
+                            </li>
+                            <li>
+                                <i class="fa-solid fa-check text-success me-2"></i>
+                                Gestisci autorizzazioni
+                            </li>
+                        </ul>
+                        <button class="btn btn-danger" disabled>
+                            <i class="fa-solid fa-edit me-2"></i>Modifica (coming soon)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (User.FindFirst("Ruolo")?.Value != "SuperAdmin")
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-info border-0">
+                    <i class="fa-solid fa-circle-info me-2"></i>
+                    <strong>Nota:</strong> Come Admin, hai accesso limitato. Contatta un SuperAdmin per gestire gli utenti.
+                </div>
+            </div>
+        </div>
+    }
+</div>

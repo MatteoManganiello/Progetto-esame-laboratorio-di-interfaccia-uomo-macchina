@@ -85,7 +85,8 @@ namespace Template.Services.Prenotazioni
                         NumeroPersone = item.NumeroPersone,
                         Note = request.Note,
                         DataCreazione = DateTime.UtcNow,
-                        IsCancellata = false
+                        IsCancellata = false,
+                        Prezzo = CalcolaPrezzo(postazione.Tipo, item.NumeroPersone)
                     };
 
                     _dbContext.Prenotazioni.Add(nuovaPrenotazione);
@@ -168,6 +169,21 @@ namespace Template.Services.Prenotazioni
                 "Ristorante" => $"Zona pranzo. {baseComfort}",
                 _ => baseComfort
             };
+        }
+
+        private static decimal CalcolaPrezzo(string tipo, int numeroPersone)
+        {
+            decimal basePrezzo = tipo switch
+            {
+                "Singola" => 25m,
+                "Team" => 150m,
+                "Riunioni" => 80m,
+                "Eventi" => 500m,
+                "Ristorante" => 15m,
+                _ => 0m
+            };
+
+            return tipo == "Ristorante" ? basePrezzo * Math.Max(numeroPersone, 1) : basePrezzo;
         }
     }
 }

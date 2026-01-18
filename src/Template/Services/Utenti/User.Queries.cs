@@ -60,6 +60,7 @@ namespace Template.Services.Utenti
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string NickName { get; set; }
+        public string Ruolo { get; set; }
     }
 
     public class CheckLoginCredentialsQuery
@@ -153,7 +154,8 @@ namespace Template.Services.Utenti
                     Email = x.Email,
                     FirstName = x.FirstName,
                     LastName = x.LastName,
-                    NickName = x.NickName
+                    NickName = x.NickName,
+                    Ruolo = x.Ruolo
                 })
                 .FirstOrDefaultAsync();
         }
@@ -175,7 +177,8 @@ namespace Template.Services.Utenti
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                NickName = user.NickName
+                NickName = user.NickName,
+                Ruolo = user.Ruolo
             };
         }
     }

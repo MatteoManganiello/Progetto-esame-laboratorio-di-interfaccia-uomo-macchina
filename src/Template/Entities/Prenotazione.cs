@@ -27,9 +27,11 @@ namespace Template.Entities
         [MaxLength(500)]
         public string Note { get; set; }
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Prezzo { get; set; } = 0;
 
         [Required]
-        public int PostazioneId { get; set; }
+        public int PostazioneId { get; set;}
         
         [ForeignKey(nameof(PostazioneId))]
         public virtual Postazione Postazione { get; set; }

@@ -1,0 +1,358 @@
+@using Template.Web.Features.SuperAdmin
+@model SuperAdminStatsViewModel
+
+@{
+    ViewData["Title"] = "Dashboard SuperAdmin";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4">
+                <i class="fas fa-chart-line"></i> Dashboard SuperAdmin
+            </h1>
+            <p class="text-muted">Statistiche complete e gestione del sistema</p>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row mb-4">
+        <!-- Totale Utenti -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Utenti Registrati</h6>
+                            <h2 id="totalUtenti" class="mb-0">@Model.TotalUtenti</h2>
+                        </div>
+                        <i class="fas fa-users fa-2x text-primary opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prenotazioni Attive -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Prenotazioni Attive</h6>
+                            <h2 id="prenotazioniAttive" class="mb-0">@Model.PrenotazioniAttive</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-2x text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spesa Totale -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Spesa Totale</h6>
+                            <h2 id="spesaTotale" class="mb-0">€@Model.SpesaTotale.ToString("N2")</h2>
+                        </div>
+                        <i class="fas fa-euro-sign fa-2x text-warning opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spesa Media -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Spesa Media</h6>
+                            <h2 id="spesaMedia" class="mb-0">€@Model.SpesaMedia.ToString("N2")</h2>
+                        </div>
+                        <i class="fas fa-chart-bar fa-2x text-info opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Distribuzione Utenti per Ruolo -->
+        <div class="col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-pie-chart"></i> Utenti per Ruolo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="rolesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prenotazioni per Stato -->
+        <div class="col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks"></i> Prenotazioni per Stato
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-check-circle text-success"></i> Attive</span>
+                            <strong id="prenAttiveValue">@Model.PrenotazioniAttive</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-times-circle text-danger"></i> Cancellate</span>
+                            <strong id="prenCancellateValue">@Model.PrenotazioniCancellate</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-calendar-alt text-muted"></i> Totali</span>
+                            <strong id="prenTotaliValue">@Model.TotalPrenotazioni</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trend Giornaliero -->
+        <div class="col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-area"></i> Trend Ultimi 7 Giorni
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row">
+        <!-- Postazioni Più Prenotate -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-building"></i> Postazioni Più Prenotate
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Postazione</th>
+                                <th class="text-center">Prenotazioni</th>
+                                <th class="text-end">Ricavo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postazioniTableBody">
+                            @foreach (var p in Model.PostazioniPiuPrenotate)
+                            {
+                                <tr>
+                                    <td><strong>@p.Nome</strong></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@p.NumPrenotazioni</span>
+                                    </td>
+                                    <td class="text-end">€@p.SpesaTotale.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utenti con Maggior Spesa -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-star"></i> Top Utenti per Spesa
+                    </h5>
+                    <a href="@Url.Action("UtentiDettagli", "SuperAdmin")" class="btn btn-sm btn-outline-light">
+                        Vedi Tutti
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Email</th>
+                                <th class="text-center">Prenotazioni</th>
+                                <th class="text-end">Spesa Totale</th>
+                            </tr>
+                        </thead>
+                        <tbody id="utentiTableBody">
+                            @foreach (var u in Model.UtentiMaggiorSpesa)
+                            {
+                                <tr>
+                                    <td>
+                                        <small>@u.Email</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@u.NumPrenotazioni</span>
+                                    </td>
+                                    <td class="text-end"><strong>€@u.SpesaTotale.ToString("N2")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+    // Roles Chart (Pie)
+    const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+    const rolesChart = new Chart(rolesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['SuperAdmin', 'Admin', 'User'],
+            datasets: [{
+                data: [@Model.UtentiPerRuolo["SuperAdmin"], @Model.UtentiPerRuolo["Admin"], @Model.UtentiPerRuolo["User"]],
+                backgroundColor: ['#dc3545', '#ffc107', '#0d6efd'],
+                borderColor: ['#fff', '#fff', '#fff'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Trend Chart (Line)
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    const trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: [@string.Join(",", Model.StatsGiornaliere.Select(s => $"'{s.Data:dd/MM}'"))],
+            datasets: [{
+                label: 'Prenotazioni',
+                data: [@string.Join(",", Model.StatsGiornaliere.Select(s => s.NumPrenotazioni))],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#28a745',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Utility per formattazione Euro
+    const fmtEuro = (v) => '€' + new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+    function updateDashboard(stats) {
+        // Alcuni serializer possono usare camelCase o PascalCase
+        const s = stats;
+        const get = (o, k) => o[k] ?? o[k.charAt(0).toUpperCase() + k.slice(1)];
+
+        document.getElementById('totalUtenti').textContent = get(s, 'totalUtenti');
+        document.getElementById('prenotazioniAttive').textContent = get(s, 'prenotazioniAttive');
+        document.getElementById('spesaTotale').textContent = fmtEuro(get(s, 'spesaTotale'));
+        document.getElementById('spesaMedia').textContent = fmtEuro(get(s, 'spesaMedia'));
+
+        // Lista prenotazioni per stato
+        document.getElementById('prenAttiveValue').textContent = get(s, 'prenotazioniAttive');
+        document.getElementById('prenCancellateValue').textContent = get(s, 'prenotazioniCancellate');
+        document.getElementById('prenTotaliValue').textContent = get(s, 'totalPrenotazioni');
+
+        // Aggiorna charts
+        const upr = get(s, 'utentiPerRuolo');
+        rolesChart.data.datasets[0].data = [upr.SuperAdmin ?? upr.superAdmin, upr.Admin ?? upr.admin, upr.User ?? upr.user];
+        rolesChart.update();
+
+        const giornaliere = get(s, 'statsGiornaliere') || [];
+        trendChart.data.labels = giornaliere.map(g => new Date(g.data ?? g.Data).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }));
+        trendChart.data.datasets[0].data = giornaliere.map(g => g.numPrenotazioni ?? g.NumPrenotazioni);
+        trendChart.update();
+
+        // Tabelle
+        const postBody = document.getElementById('postazioniTableBody');
+        const postazioni = get(s, 'postazioniPiuPrenotate') || [];
+        postBody.innerHTML = postazioni.map(p => `
+            <tr>
+                <td><strong>${p.nome ?? p.Nome}</strong></td>
+                <td class="text-center"><span class="badge bg-primary">${p.numPrenotazioni ?? p.NumPrenotazioni}</span></td>
+                <td class="text-end">${fmtEuro(p.spesaTotale ?? p.SpesaTotale)}</td>
+            </tr>
+        `).join('');
+
+        const utentiBody = document.getElementById('utentiTableBody');
+        const utenti = get(s, 'utentiMaggiorSpesa') || [];
+        utentiBody.innerHTML = utenti.map(u => `
+            <tr>
+                <td><small>${u.email ?? u.Email}</small></td>
+                <td class="text-center"><span class="badge bg-info">${u.numPrenotazioni ?? u.NumPrenotazioni}</span></td>
+                <td class="text-end"><strong>${fmtEuro(u.spesaTotale ?? u.SpesaTotale)}</strong></td>
+            </tr>
+        `).join('');
+    }
+
+    async function fetchStats() {
+        try {
+            const res = await fetch('/SuperAdmin/StatsJson', { cache: 'no-store' });
+            if (!res.ok) return;
+            const stats = await res.json();
+            updateDashboard(stats);
+        } catch (e) {
+            console.warn('StatsJson fetch failed', e);
+        }
+    }
+
+    // Polling ogni 7 secondi
+    setInterval(fetchStats, 7000);
+    // Primo aggiornamento dopo il render iniziale
+    window.addEventListener('DOMContentLoaded', fetchStats);
+
+</script>
+
+<style>
+    .card {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .card-header {
+        border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+</style>
