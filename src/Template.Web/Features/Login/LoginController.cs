@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Template.Infrastructure;
 using Template.Web.Infrastructure;
-using Template.Services.Utenti; 
-using Template.Data; 
-using Template.Entities;
+using Template.Services.Utenti;
 
 namespace Template.Web.Features.Login
 {
@@ -22,13 +20,11 @@ namespace Template.Web.Features.Login
         public static string LoginErrorModelStateKey = "LoginError";
 
         private readonly UserQueries _userQueries;
-        private readonly TemplateDbContext _dbContext;
         private readonly IStringLocalizer<SharedResource> _sharedLocalizer;
 
-        public LoginController(UserQueries userQueries, TemplateDbContext dbContext, IStringLocalizer<SharedResource> sharedLocalizer)
+        public LoginController(UserQueries userQueries, IStringLocalizer<SharedResource> sharedLocalizer)
         {
             _userQueries = userQueries;
-            _dbContext = dbContext;
             _sharedLocalizer = sharedLocalizer;
         }
 

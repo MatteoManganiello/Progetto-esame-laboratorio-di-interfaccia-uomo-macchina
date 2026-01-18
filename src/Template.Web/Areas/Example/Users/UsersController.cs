@@ -5,11 +5,7 @@ using Microsoft.Extensions.Localization;
 using Template.Web.Infrastructure;
 using Template.Web.SignalR;
 using Template.Web.SignalR.Hubs.Events;
-
-// 1. IMPORTIAMO I NUOVI NAMESPACE
-using Template.Services.Utenti; // Qui ci sono UserQueries e i DTO
-using Template.Data;           // Per il DbContext
-using Template.Entities;       // Per l'entità User
+using Template.Services.Utenti;
 
 namespace Template.Web.Areas.Example.Users
 {
@@ -18,20 +14,19 @@ namespace Template.Web.Areas.Example.Users
     {
         // 2. RIMPIAZZIAMO SharedService CON I NUOVI SERVIZI
         private readonly UserQueries _userQueries;
-        private readonly TemplateDbContext _dbContext;
-        
+        private readonly UserManagementService _userManagementService;
         private readonly IPublishDomainEvents _publisher;
         private readonly IStringLocalizer<SharedResource> _sharedLocalizer;
 
         // Costruttore Aggiornato
         public UsersController(
-            UserQueries userQueries, 
-            TemplateDbContext dbContext,
+            UserQueries userQueries,
+            UserManagementService userManagementService,
             IPublishDomainEvents publisher, 
             IStringLocalizer<SharedResource> sharedLocalizer)
         {
             _userQueries = userQueries;
-            _dbContext = dbContext;
+            _userManagementService = userManagementService;
             _publisher = publisher;
             _sharedLocalizer = sharedLocalizer;
 
@@ -82,61 +77,51 @@ namespace Template.Web.Areas.Example.Users
             {
                 try
                 {
-                    Guid userId;
+                    EsitoUtenteOperazione esito;
 
-                    // 3. LOGICA DI SALVATAGGIO DIRETTA (Senza SharedService)
                     if (model.Id.HasValue)
                     {
                         // MODIFICA
-                        var user = await _dbContext.Users.FindAsync(model.Id.Value);
-                        if (user != null)
-                        {
-                            user.Email = model.Email;
-                            user.FirstName = model.FirstName;
-                            user.LastName = model.LastName;
-                            user.NickName = model.NickName;
-                            // user.Password = ... (gestisci la password se serve)
-                            
-                            userId = user.Id;
-                        }
-                        else
-                        {
-                            throw new Exception("Utente non trovato");
-                        }
-                    }
-                    else
-                    {
-                        // CREAZIONE NUOVO
-                        var newUser = new User
+                        var request = new UserEditRequest
                         {
                             Email = model.Email,
                             FirstName = model.FirstName,
                             LastName = model.LastName,
-                            NickName = model.NickName,
-                            // Password provvisoria o gestita dal modello
-                            Password = "ChangeMe123!" 
+                            NickName = model.NickName
                         };
-                        
-                        _dbContext.Users.Add(newUser);
-                        await _dbContext.SaveChangesAsync(); // Salviamo subito per avere l'ID
-                        userId = newUser.Id;
+                        esito = await _userManagementService.AggiornaUtenteAsync(model.Id.Value, request);
+                    }
+                    else
+                    {
+                        // CREAZIONE NUOVO
+                        var request = new UserEditRequest
+                        {
+                            Email = model.Email,
+                            FirstName = model.FirstName,
+                            LastName = model.LastName,
+                            NickName = model.NickName
+                        };
+                        esito = await _userManagementService.CreaUtenteAsync(request);
                     }
 
-                    // Conferma salvataggio modifiche
-                    await _dbContext.SaveChangesAsync();
-
-                    Alerts.AddSuccess(this, "Informazioni aggiornate");
-
-                    // Evento SignalR
-                    await _publisher.Publish(new NewMessageEvent
+                    if (esito.Successo)
                     {
-                        IdGroup = userId,
-                        IdUser = userId,
-                        IdMessage = Guid.NewGuid()
-                    });
+                        Alerts.AddSuccess(this, esito.Messaggio);
 
-                    // Aggiorniamo l'ID nel modello per il redirect corretto
-                    model.Id = userId;
+                        // Evento SignalR
+                        await _publisher.Publish(new NewMessageEvent
+                        {
+                            IdGroup = esito.UtenteId.Value,
+                            IdUser = esito.UtenteId.Value,
+                            IdMessage = Guid.NewGuid()
+                        });
+
+                        model.Id = esito.UtenteId;
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, esito.Messaggio);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -155,17 +140,15 @@ namespace Template.Web.Areas.Example.Users
         [HttpPost]
         public virtual async Task<IActionResult> Delete(Guid id)
         {
-            // 4. LOGICA DI CANCELLAZIONE DIRETTA
-            var user = await _dbContext.Users.FindAsync(id);
-            if (user != null)
+            var esito = await _userManagementService.EliminaUtenteAsync(id);
+            
+            if (esito.Successo)
             {
-                _dbContext.Users.Remove(user);
-                await _dbContext.SaveChangesAsync();
-                Alerts.AddSuccess(this, "Utente cancellato");
+                Alerts.AddSuccess(this, esito.Messaggio);
             }
             else
             {
-                Alerts.AddError(this, "Utente non trovato");
+                Alerts.AddError(this, esito.Messaggio);
             }
 
             return RedirectToAction(Actions.Index());

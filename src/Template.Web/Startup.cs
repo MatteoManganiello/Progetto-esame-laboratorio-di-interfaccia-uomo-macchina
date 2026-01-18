@@ -14,8 +14,9 @@ using Template.Web.SignalR.Hubs;
 
 // --- NAMESPACE CORRETTI ---
 using Template.Data;                   // Per TemplateDbContext
-using Template.Services.Utenti;        // Per UserQueries
+using Template.Services.Utenti;        // Per UserQueries, RegisterService
 using Template.Services.Prenotazioni;  // Per PrenotazioneService
+using Template.Services.Ristorazione;  // Per RistorazioneService
 
 namespace Template.Web
 {
@@ -34,12 +35,11 @@ namespace Template.Web
         {
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
-            // 1. DATABASE
-            // Usiamo InMemory per l'esame.
+            // 1. DATABASE - MySQL
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<TemplateDbContext>(options =>
             {
-                options.UseInMemoryDatabase(databaseName: "Template")
-                .ConfigureWarnings(x => x.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
             });
 
             // 2. REGISTRAZIONE SERVIZI (Dependency Injection)
@@ -50,8 +50,16 @@ namespace Template.Web
 
             // B. PrenotazioneService (Per Logica Prenotazioni)
             services.AddScoped<PrenotazioneService>();
+
+            // C. RistorazioneService (Per Logica Ristorazione)
+            services.AddScoped<Template.Services.Ristorazione.RistorazioneService>();
+
+            // D. RegisterService (Per Registrazione Utenti)
+            services.AddScoped<Template.Services.Utenti.RegisterService>();
+
+            // E. UserManagementService (Per Gestione Utenti CRUD)
+            services.AddScoped<Template.Services.Utenti.UserManagementService>();
             
-            // Nota: SharedService è stato rimosso definitivamente.
             // ==============================================================
 
             // SERVIZI DI AUTENTICAZIONE
