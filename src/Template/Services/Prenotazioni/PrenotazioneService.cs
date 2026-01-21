@@ -37,69 +37,75 @@ namespace Template.Services.Prenotazioni
                  return new EsitoPrenotazione { Successo = false, Messaggio = "Non puoi prenotare nel passato." };
             }
 
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
             try
             {
-                foreach (var item in request.Elementi)
+                var strategy = _dbContext.Database.CreateExecutionStrategy();
+                return await strategy.ExecuteAsync(async () =>
                 {
-                    var postazione = await _dbContext.Postazioni.FindAsync(item.PostazioneId);
+                    await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-                    if (postazione == null)
+                    foreach (var item in request.Elementi)
                     {
-                        return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione ID {item.PostazioneId} non esiste." };
-                    }
+                        var postazione = await _dbContext.Postazioni.FindAsync(item.PostazioneId);
 
-                    int postiGiaOccupati = await _dbContext.Prenotazioni
-                        .Where(p => p.PostazioneId == postazione.Id
-                                    && p.DataPrenotazione.Date == request.Data.Date
-                                    && !p.IsCancellata)
-                        .SumAsync(p => p.NumeroPersone);
-
-                    if (postazione.Tipo == "Ristorante")
-                    {
-
-                        int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
-                        
-                        if (postiGiaOccupati + item.NumeroPersone > capienzaMax)
+                        if (postazione == null)
                         {
-                            int postiRimasti = capienzaMax - postiGiaOccupati;
-                            return new EsitoPrenotazione { Successo = false, Messaggio = $"'{postazione.Nome}': posti insufficienti (Richiesti: {item.NumeroPersone}, Rimasti: {postiRimasti})." };
+                            await transaction.RollbackAsync();
+                            return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione ID {item.PostazioneId} non esiste." };
                         }
-                    }
-                    else
-                    {
 
-                        if (postiGiaOccupati > 0)
+                        int postiGiaOccupati = await _dbContext.Prenotazioni
+                            .Where(p => p.PostazioneId == postazione.Id
+                                        && p.DataPrenotazione.Date == request.Data.Date
+                                        && !p.IsCancellata)
+                            .SumAsync(p => p.NumeroPersone);
+
+                        if (postazione.Tipo == "Ristorante")
                         {
-                            return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione '{postazione.Nome}' è già occupata per questa data." };
+
+                            int capienzaMax = postazione.PostiTotali > 0 ? postazione.PostiTotali : 1;
+                            
+                            if (postiGiaOccupati + item.NumeroPersone > capienzaMax)
+                            {
+                                int postiRimasti = capienzaMax - postiGiaOccupati;
+                                await transaction.RollbackAsync();
+                                return new EsitoPrenotazione { Successo = false, Messaggio = $"'{postazione.Nome}': posti insufficienti (Richiesti: {item.NumeroPersone}, Rimasti: {postiRimasti})." };
+                            }
                         }
+                        else
+                        {
+
+                            if (postiGiaOccupati > 0)
+                            {
+                                await transaction.RollbackAsync();
+                                return new EsitoPrenotazione { Successo = false, Messaggio = $"La postazione '{postazione.Nome}' è già occupata per questa data." };
+                            }
+                        }
+
+
+                        var nuovaPrenotazione = new Prenotazione 
+                        {
+                            PostazioneId = postazione.Id,
+                            DataPrenotazione = request.Data,
+                            UserId = userId,
+                            NumeroPersone = item.NumeroPersone,
+                            Note = request.Note,
+                            DataCreazione = DateTime.UtcNow,
+                            IsCancellata = false,
+                            Prezzo = CalcolaPrezzo(postazione.Tipo, item.NumeroPersone)
+                        };
+
+                        _dbContext.Prenotazioni.Add(nuovaPrenotazione);
                     }
 
+                    await _dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
-                    var nuovaPrenotazione = new Prenotazione 
-                    {
-                        PostazioneId = postazione.Id,
-                        DataPrenotazione = request.Data,
-                        UserId = userId,
-                        NumeroPersone = item.NumeroPersone,
-                        Note = request.Note,
-                        DataCreazione = DateTime.UtcNow,
-                        IsCancellata = false,
-                        Prezzo = CalcolaPrezzo(postazione.Tipo, item.NumeroPersone)
-                    };
-
-                    _dbContext.Prenotazioni.Add(nuovaPrenotazione);
-                }
-
-                await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return new EsitoPrenotazione { Successo = true, Messaggio = $"{request.Elementi.Count} spazi prenotati con successo!" };
+                    return new EsitoPrenotazione { Successo = true, Messaggio = $"{request.Elementi.Count} spazi prenotati con successo!" };
+                });
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante la prenotazione multipla per User {UserId}", userId);
                 
                 return new EsitoPrenotazione { Successo = false, Messaggio = "Errore tecnico durante il salvataggio: " + ex.Message };

@@ -89,6 +89,10 @@
                 </div>
             </div>
             <div class="card-body px-0 pb-0">
+                <div v-if="menuWarning" class="alert alert-warning mx-3 mt-2 mb-3">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    Menù non disponibile per la settimana selezionata.
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent;">
                         <tbody class="small">

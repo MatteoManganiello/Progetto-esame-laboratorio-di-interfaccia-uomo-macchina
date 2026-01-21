@@ -4,43 +4,40 @@
 }
 
 <div class="container py-5">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-6 mb-2">
-                <i class="fa-solid fa-sliders text-warning me-2"></i>Dashboard Admin
-            </h1>
-            <p class="text-muted">Gestisci il contenuto e le impostazioni del sito</p>
-        </div>
-    </div>
-
     <div class="row g-4">
-        <!-- Card InfoCards -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
+        <!-- Card Notifiche Azienda -->
+        <div class="col-lg-6 pe-lg-4 border-end border-dark">
+            <div class="card shadow-sm border-0 h-100 bg-primary bg-opacity-10">
                 <div class="card-header bg-primary text-white d-flex align-items-center">
-                    <i class="fa-solid fa-rectangle-list me-2"></i>
-                    <h5 class="mb-0">Gestisci Info Cards</h5>
+                    <i class="fa-solid fa-bell me-2"></i>
+                    <h5 class="mb-0">Notifiche Azienda</h5>
                 </div>
                 <div class="card-body">
+                    <img src="~/images/notifiche.jpg" class="img-fluid rounded mb-3 admin-card-image" alt="Notifiche aziendali" />
                     <p class="text-muted mb-3">
-                        Modifica il contenuto delle card di informazione (Novità, Menù, ecc.)
+                        Inserisci comunicazioni e aggiornamenti importanti per i clienti, inclusi avvisi di servizio, novità operative e informazioni utili per restare sempre aggiornati.
                     </p>
-                    <ul class="list-unstyled mb-3">
-                        <li class="mb-2">
-                            <i class="fa-solid fa-check text-success me-2"></i>
-                            <strong>Novità in Azienda</strong> - Comunicazioni ufficiali
-                        </li>
-                        <li class="mb-2">
-                            <i class="fa-solid fa-check text-success me-2"></i>
-                            <strong>Menù della Settimana</strong> - Menu ristorante
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-check text-success me-2"></i>
-                            <strong>Ultimi Ordini</strong> - Storico prenotazioni
-                        </li>
-                    </ul>
-                    <a href="@Url.Action("EditInfoCards", "Admin")" class="btn btn-primary">
-                        <i class="fa-solid fa-edit me-2"></i>Modifica
+                    <a href="@Url.Action("Notifiche", "Admin")" class="btn btn-primary">
+                        <i class="fa-solid fa-edit me-2"></i>Inserisci notifiche
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Menù Settimanale -->
+        <div class="col-lg-6 ps-lg-4">
+            <div class="card shadow-sm border-0 h-100 bg-success bg-opacity-10">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="fa-solid fa-utensils me-2"></i>
+                    <h5 class="mb-0">Menù Settimanale</h5>
+                </div>
+                <div class="card-body">
+                    <img src="~/images/ristorante.jpg" class="img-fluid rounded mb-3 admin-card-image" alt="Menù settimanale" />
+                    <p class="text-muted mb-3">
+                        Aggiorna il menù della settimana per il ristorante aziendale.
+                    </p>
+                    <a href="@Url.Action("MenuSettimanale", "Admin")" class="btn btn-success">
+                        <i class="fa-solid fa-edit me-2"></i>Modifica menù
                     </a>
                 </div>
             </div>
@@ -82,15 +79,4 @@
         }
     </div>
 
-    @if (User.FindFirst("Ruolo")?.Value != "SuperAdmin")
-    {
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="alert alert-info border-0">
-                    <i class="fa-solid fa-circle-info me-2"></i>
-                    <strong>Nota:</strong> Come Admin, hai accesso limitato. Contatta un SuperAdmin per gestire gli utenti.
-                </div>
-            </div>
-        </div>
-    }
 </div>

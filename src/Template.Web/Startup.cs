@@ -1,14 +1,18 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
 using Template.Web.Infrastructure;
 using Template.Web.SignalR.Hubs;
 
@@ -37,9 +41,18 @@ namespace Template.Web
 
             // 1. DATABASE - MySQL
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            var envConnectionString = System.Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+            if (!string.IsNullOrWhiteSpace(envConnectionString))
+            {
+                connectionString = envConnectionString;
+            }
             services.AddDbContext<TemplateDbContext>(options =>
             {
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), mySqlOptions =>
+                {
+                    mySqlOptions.CommandTimeout(30);
+                    mySqlOptions.EnableRetryOnFailure(3);
+                });
             });
 
             // 2. REGISTRAZIONE SERVIZI (Dependency Injection)
@@ -100,6 +113,9 @@ namespace Template.Web
             });
 
             services.AddSignalR();
+
+            services.AddHealthChecks()
+                .AddDbContextCheck<TemplateDbContext>();
             
             // Registra eventuali altri tipi definiti in Container.cs
             Container.RegisterTypes(services);
@@ -114,6 +130,11 @@ namespace Template.Web
                 app.UseHttpsRedirection();
             }
 
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseRequestLocalization(SupportedCultures.CultureNames);
             
             // --- ORDINE FONDAMENTALE DEI MIDDLEWARE ---
@@ -124,14 +145,30 @@ namespace Template.Web
             app.UseAuthorization();  // 2. Puoi entrare?
             // ------------------------------------------
 
-            var node_modules = new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "node_modules");
-            var areas = new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "Areas");
-            var compositeFp = new CustomCompositeFileProvider(env.WebRootFileProvider, node_modules, areas);
-            env.WebRootFileProvider = compositeFp;
+            var fileProviders = new List<IFileProvider> { env.WebRootFileProvider };
+
+            var nodeModulesPath = Path.Combine(Directory.GetCurrentDirectory(), "node_modules");
+            if (Directory.Exists(nodeModulesPath))
+            {
+                fileProviders.Add(new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "node_modules"));
+            }
+
+            var areasPath = Path.Combine(Directory.GetCurrentDirectory(), "Areas");
+            if (Directory.Exists(areasPath))
+            {
+                fileProviders.Add(new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "Areas"));
+            }
+
+            env.WebRootFileProvider = new CustomCompositeFileProvider(fileProviders);
             app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHealthChecks("/healthz");
+                endpoints.MapHealthChecks("/healthz/db", new HealthCheckOptions
+                {
+                    Predicate = registration => registration.Name.Contains("DbContext")
+                });
                 endpoints.MapHub<TemplateHub>("/templateHub");
                 
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");

@@ -1,0 +1,88 @@
+@model Template.Web.Features.Admin.MenuSettimanaleViewModel
+@{
+    ViewData["Title"] = "Menù Settimanale";
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success border-0">
+            <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+            <form asp-controller="Admin" asp-action="MenuSettimanale" method="post">
+                @Html.AntiForgeryToken()
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Settimana (lun-dom)</label>
+                        <input class="form-control" type="week" name="WeekIso" value="@Model.WeekIso" />
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="mb-0 fw-semibold text-dark">Piatti per giorno</h6>
+                    <span class="badge bg-success-subtle text-success">Compila tutti i giorni disponibili</span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Lun</span>
+                            <input class="form-control" name="Lunedi" value="@Model.Lunedi" placeholder="Es. Pasta al pesto" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Mar</span>
+                            <input class="form-control" name="Martedi" value="@Model.Martedi" placeholder="Es. Risotto ai funghi" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Mer</span>
+                            <input class="form-control" name="Mercoledi" value="@Model.Mercoledi" placeholder="Es. Pollo al curry" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Gio</span>
+                            <input class="form-control" name="Giovedi" value="@Model.Giovedi" placeholder="Es. Gnocchi al pomodoro" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Ven</span>
+                            <input class="form-control" name="Venerdi" value="@Model.Venerdi" placeholder="Es. Pesce al forno" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Sab</span>
+                            <input class="form-control" name="Sabato" value="@Model.Sabato" placeholder="Es. Pizza" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">Dom</span>
+                            <input class="form-control" name="Domenica" value="@Model.Domenica" placeholder="Es. Arrosto" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-save me-2"></i>Salva menù
+                    </button>
+                    <a href="@Url.Action("Dashboard", "Admin")" class="btn" style="background-color: #dc3545; border: 1px solid #dc3545; color: #fff;">Torna alla dashboard</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

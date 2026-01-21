@@ -41,9 +41,9 @@
             <span class="text-white fw-bold small text-uppercase me-2" style="white-space: nowrap;">
                 Scegli data:
             </span>
-            <input type="date" class="form-control border-0 fw-bold p-1 text-center"
-                style="outline: none; box-shadow: none; width: 130px; background-color: rgba(255,255,255,0.9);"
-                v-model="dataSelezionata" v-on:change="caricaDatiMappa">
+            <input type="date" class="form-control border-0 fw-bold p-1 text-center responsive-date-picker"
+                style="outline: none; box-shadow: none; background-color: rgba(255,255,255,0.9);"
+                v-model="dataSelezionata" :min="minDate" v-on:change="caricaDatiMappa">
         </div>
     </div>
 

@@ -17,8 +17,12 @@ namespace Template.Web
                 var services = scope.ServiceProvider;
                 try
                 {
-                    // Usa DataGenerator per inizializzare i dati
-                    DataGenerator.Initialize(services);
+                    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+                    if (env.IsDevelopment())
+                    {
+                        // Usa DataGenerator per inizializzare i dati solo in dev
+                        DataGenerator.Initialize(services);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -33,6 +37,11 @@ namespace Template.Web
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    var port = Environment.GetEnvironmentVariable("PORT");
+                    if (!string.IsNullOrWhiteSpace(port))
+                    {
+                        webBuilder.UseUrls($"http://0.0.0.0:{port}");
+                    }
                     webBuilder.UseStartup<Startup>();
                 });
     }

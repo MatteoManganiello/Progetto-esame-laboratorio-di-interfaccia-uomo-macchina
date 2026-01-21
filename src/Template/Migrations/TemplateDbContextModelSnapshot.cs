@@ -22,6 +22,46 @@ namespace Template.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Template.Entities.MenuSettimanale", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Domenica")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Giovedi")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Lunedi")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Martedi")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Mercoledi")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Sabato")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Venerdi")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("WeekStart")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WeekStart")
+                        .IsUnique();
+
+                    b.ToTable("MenuSettimanali");
+                });
+
             modelBuilder.Entity("Template.Entities.Postazione", b =>
                 {
                     b.Property<int>("Id")

@@ -1,13 +1,55 @@
 const { createApp } = Vue;
+
+function normalizeMenuSettimanale(rawMenu) {
+    if (!rawMenu) return null;
+
+    let menu = rawMenu;
+    if (typeof menu === 'string') {
+        try {
+            menu = JSON.parse(menu);
+        } catch {
+            return null;
+        }
+    }
+
+    if (typeof menu !== 'object') return null;
+
+    const fullToShort = {
+        lunedi: 'Lun',
+        martedi: 'Mar',
+        mercoledi: 'Mer',
+        giovedi: 'Gio',
+        venerdi: 'Ven',
+        sabato: 'Sab',
+        domenica: 'Dom'
+    };
+
+    const normalized = {};
+    Object.keys(menu).forEach((key) => {
+        const lowerKey = key.toLowerCase();
+        const shortKey = fullToShort[lowerKey] || key;
+        if (menu[key]) {
+            normalized[shortKey] = menu[key];
+        }
+    });
+
+    return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
         createApp({
             data() {
 
                 const dbData = window.dashboardData || {};
+                const normalizedMenu = normalizeMenuSettimanale(dbData.menuSettimanale);
+                const today = new Date();
+                const minDateObj = new Date(today);
+                const minDate = minDateObj.toISOString().split('T')[0];
 
                 return {
                     loading: false,
                     loadingBtn: false,
-                    dataSelezionata: new Date().toISOString().split('T')[0],
+                    minDate,
+                    dataSelezionata: minDate,
                     postazioni: [],
                     postazioneSelezionata: null,
                     numeroPostiRichiesti: 1,
@@ -23,13 +65,9 @@ const { createApp } = Vue;
                         { data: '17/12/2025', titolo: 'Manutenzione Wi-Fi', contenuto: 'Manutenzione Wi-Fi dalle 17 alle 18' },
                         { data: '22/11/2025', titolo: 'Nuova Area meeting', contenuto: 'Apertura della seconda sala meeting' }
                     ],
-                    menuSettimanale: dbData.menuSettimanale || {
-                        'Lun': 'Lasagne alla Bolognese',
-                        'Mar': 'Risotto ai Funghi',
-                        'Mer': 'Pollo al Curry',
-                        'Gio': 'Gnocchi al Pesto',
-                        'Ven': 'Orata con Patate'
-                    }
+                    menuSettimanale: normalizedMenu || {},
+                    menuWarning: dbData.menuWarning ?? (normalizedMenu == null),
+                    menuWeekStart: dbData.weekStart || null
                 }
             },
 
@@ -65,12 +103,23 @@ const { createApp } = Vue;
 
             methods: {
                 caricaDatiMappa() {
+                    if (this.dataSelezionata < this.minDate) {
+                        this.dataSelezionata = this.minDate;
+                    }
                     this.loading = true;
                     this.postazioneSelezionata = null;
                     fetch(`/Prenotazione/GetDatiMappa?data=${this.dataSelezionata}`)
                         .then(r => r.json())
                         .then(d => {
-                            this.postazioni = d;
+                            if (Array.isArray(d)) {
+                                this.postazioni = d;
+                            } else {
+                                this.postazioni = d.postazioni || [];
+                                const normalizedMenu = normalizeMenuSettimanale(d.menuSettimanale);
+                                this.menuSettimanale = normalizedMenu || {};
+                                this.menuWarning = d.menuWarning ?? (normalizedMenu == null);
+                                this.menuWeekStart = d.weekStart || null;
+                            }
                             this.loading = false;
                         })
                         .catch(e => { console.error(e); this.loading = false; });

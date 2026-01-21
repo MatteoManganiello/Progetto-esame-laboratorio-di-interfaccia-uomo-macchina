@@ -1,10 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Template.Data;
+using Template.Entities;
 using Template.Services.Prenotazioni;
 
 namespace Template.Web.Features.Prenotazione
@@ -13,19 +16,42 @@ namespace Template.Web.Features.Prenotazione
     public partial class PrenotazioneController : Controller
     {
         private readonly PrenotazioneService _prenotazioneService;
+        private readonly TemplateDbContext _dbContext;
 
-        public PrenotazioneController(PrenotazioneService prenotazioneService)
+        public PrenotazioneController(PrenotazioneService prenotazioneService, TemplateDbContext dbContext)
         {
             _prenotazioneService = prenotazioneService;
+            _dbContext = dbContext;
         }
 
-        public virtual IActionResult Mappa() => View();
+        public virtual async Task<IActionResult> Mappa()
+        {
+            var weekStart = GetWeekStart(DateTime.Today);
+            var menuSettimanale = await GetMenuSettimanaleForDate(DateTime.Today);
+            ViewBag.DashboardData = new
+            {
+                menuSettimanale,
+                menuWarning = menuSettimanale == null,
+                weekStart = weekStart.ToString("yyyy-MM-dd")
+            };
+            return View();
+        }
 
         [HttpGet]
         public virtual async Task<IActionResult> GetDatiMappa(DateTime? data)
         {
             var datiMappa = await _prenotazioneService.GetDatiMappaAsync(data);
-            return Json(datiMappa);
+            var targetDate = data ?? DateTime.Today;
+            var weekStart = GetWeekStart(targetDate);
+            var menuSettimanale = await GetMenuSettimanaleForDate(targetDate);
+
+            return Json(new
+            {
+                postazioni = datiMappa,
+                menuSettimanale,
+                menuWarning = menuSettimanale == null,
+                weekStart = weekStart.ToString("yyyy-MM-dd")
+            });
         }
 
         [HttpPost]
@@ -42,6 +68,36 @@ namespace Template.Web.Features.Prenotazione
                 return Ok(new { success = true, message = esito.Messaggio });
             else
                 return BadRequest(new { success = false, message = esito.Messaggio });
+        }
+
+        private static DateTime GetWeekStart(DateTime date)
+        {
+            var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+            return date.Date.AddDays(-1 * diff);
+        }
+
+        private static Dictionary<string, string> MapMenu(MenuSettimanale menu)
+        {
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Lun"] = menu.Lunedi,
+                ["Mar"] = menu.Martedi,
+                ["Mer"] = menu.Mercoledi,
+                ["Gio"] = menu.Giovedi,
+                ["Ven"] = menu.Venerdi,
+                ["Sab"] = menu.Sabato,
+                ["Dom"] = menu.Domenica
+            };
+
+            var hasValue = result.Values.Any(v => !string.IsNullOrWhiteSpace(v));
+            return hasValue ? result : null;
+        }
+
+        private async Task<Dictionary<string, string>> GetMenuSettimanaleForDate(DateTime date)
+        {
+            var weekStart = GetWeekStart(date);
+            var menu = await _dbContext.MenuSettimanali.FirstOrDefaultAsync(m => m.WeekStart == weekStart);
+            return menu != null ? MapMenu(menu) : null;
         }
     }
 }
