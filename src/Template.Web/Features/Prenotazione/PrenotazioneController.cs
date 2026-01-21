@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -28,11 +29,13 @@ namespace Template.Web.Features.Prenotazione
         {
             var weekStart = GetWeekStart(DateTime.Today);
             var menuSettimanale = await GetMenuSettimanaleForDate(DateTime.Today);
+            var notifiche = GetNotificheAzienda();
             ViewBag.DashboardData = new
             {
                 menuSettimanale,
                 menuWarning = menuSettimanale == null,
-                weekStart = weekStart.ToString("yyyy-MM-dd")
+                weekStart = weekStart.ToString("yyyy-MM-dd"),
+                novita = notifiche
             };
             return View();
         }
@@ -44,13 +47,15 @@ namespace Template.Web.Features.Prenotazione
             var targetDate = data ?? DateTime.Today;
             var weekStart = GetWeekStart(targetDate);
             var menuSettimanale = await GetMenuSettimanaleForDate(targetDate);
+            var notifiche = GetNotificheAzienda();
 
             return Json(new
             {
                 postazioni = datiMappa,
                 menuSettimanale,
                 menuWarning = menuSettimanale == null,
-                weekStart = weekStart.ToString("yyyy-MM-dd")
+                weekStart = weekStart.ToString("yyyy-MM-dd"),
+                novita = notifiche
             });
         }
 
@@ -98,6 +103,23 @@ namespace Template.Web.Features.Prenotazione
             var weekStart = GetWeekStart(date);
             var menu = await _dbContext.MenuSettimanali.FirstOrDefaultAsync(m => m.WeekStart == weekStart);
             return menu != null ? MapMenu(menu) : null;
+        }
+
+        private object[] GetNotificheAzienda()
+        {
+            var raw = HttpContext.Session.GetString("Admin.NotificheAzienda");
+            var list = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<Template.Web.Features.Admin.NotificaItem>>(raw ?? "[]")
+                ?? new System.Collections.Generic.List<Template.Web.Features.Admin.NotificaItem>();
+
+            return list
+                .Where(n => !string.IsNullOrWhiteSpace(n?.Titolo) || !string.IsNullOrWhiteSpace(n?.Contenuto) || !string.IsNullOrWhiteSpace(n?.Data))
+                .Select(n => new
+                {
+                    data = n.Data,
+                    titolo = n.Titolo,
+                    contenuto = n.Contenuto
+                })
+                .ToArray();
         }
     }
 }

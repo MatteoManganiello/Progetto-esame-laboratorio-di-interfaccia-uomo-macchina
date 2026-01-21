@@ -46,6 +46,7 @@ namespace Template.Web.Features.Admin
                 return Unauthorized();
 
             ViewBag.Title = "Dashboard Admin";
+            ViewBag.NotificheSuperAdmin = AdminComunicazioniStore.GetSuperAdminToAdmin();
             return View();
         }
 
@@ -131,20 +132,27 @@ namespace Template.Web.Features.Admin
             if (!IsAdmin())
                 return Unauthorized();
 
-            ViewBag.Notifiche = HttpContext.Session.GetString(NotificheKey) ?? string.Empty;
+            var raw = HttpContext.Session.GetString(NotificheKey);
+            var notificheList = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<NotificaItem>>(raw ?? "[]")
+                ?? new System.Collections.Generic.List<NotificaItem>();
+            ViewBag.NotificheList = notificheList;
             return View();
         }
 
         [HttpPost("Notifiche")]
-        public virtual IActionResult SaveNotifiche([FromForm] string notifiche)
+        public virtual IActionResult SaveNotifiche([FromForm] System.Collections.Generic.List<NotificaItem> notifiche)
         {
             if (!IsAdmin())
                 return Unauthorized();
 
-            HttpContext.Session.SetString(NotificheKey, notifiche ?? string.Empty);
+            var cleaned = (notifiche ?? new System.Collections.Generic.List<NotificaItem>())
+                .FindAll(n => !string.IsNullOrWhiteSpace(n?.Titolo) || !string.IsNullOrWhiteSpace(n?.Contenuto) || !string.IsNullOrWhiteSpace(n?.Data));
+            var json = System.Text.Json.JsonSerializer.Serialize(cleaned);
+            HttpContext.Session.SetString(NotificheKey, json);
             TempData["SuccessMessage"] = "Notifiche aziendali aggiornate.";
             return RedirectToAction(nameof(Notifiche));
         }
+
 
         private static DateTime GetWeekStart(DateTime date)
         {
@@ -218,5 +226,12 @@ namespace Template.Web.Features.Admin
     {
         public object[] Novita { get; set; }
         public object MenuSettimanale { get; set; }
+    }
+
+    public class NotificaItem
+    {
+        public string Data { get; set; }
+        public string Titolo { get; set; }
+        public string Contenuto { get; set; }
     }
 }

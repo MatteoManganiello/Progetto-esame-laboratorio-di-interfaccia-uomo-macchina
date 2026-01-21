@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Template.Data;
 using Template.Infrastructure;
+using Template.Web.Features.Admin;
+using Template.Web.Infrastructure;
 
 namespace Template.Web.Features.SuperAdmin
 {
@@ -44,6 +46,21 @@ namespace Template.Web.Features.SuperAdmin
 
             var stats = await BuildStatsAsync();
             return View(stats);
+        }
+
+        [HttpPost("NotificheAdmin")]
+        [ValidateAntiForgeryToken]
+        public virtual IActionResult SaveNotificheAdmin([FromForm] NotificaItem notifica)
+        {
+            var userRole = User.FindFirst("Ruolo")?.Value;
+            if (userRole != RuoliCostanti.SUPER_ADMIN)
+            {
+                return Forbid();
+            }
+
+            AdminComunicazioniStore.AddSuperAdminToAdmin(notifica);
+            TempData["SuccessMessageSuperAdmin"] = "Notifica inviata agli admin.";
+            return RedirectToAction(nameof(Dashboard));
         }
 
         private async Task<SuperAdminStatsViewModel> BuildStatsAsync()
@@ -117,6 +134,15 @@ namespace Template.Web.Features.SuperAdmin
             // 10. Statistiche giornaliere ultimi 7 giorni
             stats.StatsGiornaliere = await GetStatsGiornaliere();
 
+            // 11. Spesa per sezione (per tipo postazione)
+            stats.SpesaPerSezione = await GetSpesaPerSezione();
+
+            // 12. Prenotazioni settimanali (settimana corrente)
+            var weekStart = GetWeekStart(DateTime.Today);
+            var weekEnd = weekStart.AddDays(7);
+            stats.PrenotazioniSettimanali = await _context.Prenotazioni
+                .CountAsync(p => p.DataCreazione >= weekStart && p.DataCreazione < weekEnd);
+
             return stats;
         }
 
@@ -144,6 +170,79 @@ namespace Template.Web.Features.SuperAdmin
             }
 
             return stats;
+        }
+
+        private static DateTime GetWeekStart(DateTime date)
+        {
+            var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+            return date.Date.AddDays(-1 * diff);
+        }
+
+        private async Task<List<SpesaSezioneDto>> GetSpesaPerSezione()
+        {
+            var prenotazioni = await _context.Prenotazioni
+                .Where(p => !p.IsCancellata)
+                .Include(p => p.Postazione)
+                .ToListAsync();
+
+            var grouped = prenotazioni
+                .GroupBy(p => NormalizeSezione(p.Postazione?.Nome, p.Postazione?.Tipo))
+                .ToDictionary(g => g.Key, g => new SpesaSezioneDto
+                {
+                    Sezione = g.Key,
+                    SpesaTotale = g.Sum(x => x.Prezzo),
+                    NumPrenotazioni = g.Count()
+                });
+
+            var sezioniRichieste = new List<string>
+            {
+                "Sala eventi",
+                "Sala meeting",
+                "Dev team",
+                "Desk room",
+                "Ristorante"
+            };
+
+            var lista = sezioniRichieste
+                .Select(sezione => grouped.TryGetValue(sezione, out var value)
+                    ? value
+                    : new SpesaSezioneDto { Sezione = sezione, SpesaTotale = 0, NumPrenotazioni = 0 })
+                .OrderByDescending(x => x.SpesaTotale)
+                .ThenByDescending(x => x.NumPrenotazioni)
+                .ToList();
+
+            return lista;
+        }
+
+        private static string NormalizeSezione(string nome, string tipo)
+        {
+            if (!string.IsNullOrWhiteSpace(nome))
+            {
+                var n = nome.Trim();
+                if (n.Contains("SALA EVENTI", StringComparison.OrdinalIgnoreCase))
+                    return "Sala eventi";
+                if (n.Contains("MEETING", StringComparison.OrdinalIgnoreCase))
+                    return "Sala meeting";
+                if (n.Contains("DEV TEAM", StringComparison.OrdinalIgnoreCase))
+                    return "Dev team";
+                if (n.Contains("DESK ROOM", StringComparison.OrdinalIgnoreCase))
+                    return "Desk room";
+                if (n.Contains("RISTORANTE", StringComparison.OrdinalIgnoreCase))
+                    return "Ristorante";
+            }
+
+            if (!string.IsNullOrWhiteSpace(tipo))
+            {
+                var t = tipo.Trim();
+                if (t.Equals("Riunioni", StringComparison.OrdinalIgnoreCase))
+                    return "Sala meeting";
+                if (t.Equals("Ristorante", StringComparison.OrdinalIgnoreCase))
+                    return "Ristorante";
+                if (t.Equals("Eventi", StringComparison.OrdinalIgnoreCase))
+                    return "Sala eventi";
+            }
+
+            return "Desk room";
         }
 
         // GET: /SuperAdmin/UtentiDettagli
@@ -208,6 +307,8 @@ namespace Template.Web.Features.SuperAdmin
         public List<PostazioneStatsDto> PostazioniPiuPrenotate { get; set; }
         public List<UtenteSpesaDto> UtentiMaggiorSpesa { get; set; }
         public List<GiornataStatsDto> StatsGiornaliere { get; set; }
+        public List<SpesaSezioneDto> SpesaPerSezione { get; set; }
+        public int PrenotazioniSettimanali { get; set; }
     }
 
     public class PostazioneStatsDto
@@ -231,6 +332,14 @@ namespace Template.Web.Features.SuperAdmin
         public int NumPrenotazioni { get; set; }
         public decimal SpesaTotale { get; set; }
     }
+
+    public class SpesaSezioneDto
+    {
+        public string Sezione { get; set; }
+        public int NumPrenotazioni { get; set; }
+        public decimal SpesaTotale { get; set; }
+    }
+
 
     public class UtenteDettaglioDto
     {
