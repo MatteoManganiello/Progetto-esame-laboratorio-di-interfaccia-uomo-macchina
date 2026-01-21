@@ -1,7 +1,9 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Template.Data;
 using Template.Infrastructure;
 
 namespace Template.Web
@@ -18,6 +20,9 @@ namespace Template.Web
                 try
                 {
                     var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TemplateDbContext>();
+                    dbContext.Database.Migrate();
+
                     if (env.IsDevelopment())
                     {
                         // Usa DataGenerator per inizializzare i dati solo in dev
