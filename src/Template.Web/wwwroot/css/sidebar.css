@@ -37,6 +37,48 @@
     display: block;
 }
 
+.sidebar-cart-icon-wrapper {
+    width: 100%;
+}
+
+.sidebar-cart-btn {
+    position: relative;
+    border: 1px solid #e9ecef;
+    background: #ffffff;
+    color: #0d6efd;
+}
+
+.sidebar-cart-btn.has-items {
+    background: #0d6efd;
+    color: #ffffff;
+    border-color: #0d6efd;
+}
+
+.sidebar-cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.topbar-separator {
+    width: 1px;
+    height: 32px;
+    background-color: rgba(0, 0, 0, 0.15);
+    display: inline-block;
+    margin: 0 6px;
+}
+
+.sidebar-card {
+    overflow-y: auto;
+    max-height: calc(150vh - 445px);
+}
+
 .booking-card {
     border: 1px solid rgba(0, 0, 0, 0.05);
     transition: transform 0.2s ease, box-shadow 0.2s ease;

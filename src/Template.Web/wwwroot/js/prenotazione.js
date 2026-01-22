@@ -56,6 +56,7 @@ function normalizeMenuSettimanale(rawMenu) {
                     tooltip: { visibile: false, dati: null, x: 0, y: 0 },
 
                     carrello: [],
+                    showCarrello: true,
 
 
                     nomePrenotazione: dbData.nomeUtente || '',
@@ -170,12 +171,15 @@ function normalizeMenuSettimanale(rawMenu) {
                         this.carrello.push(item);
                     }
 
-
                     this.postazioneSelezionata = null;
                 },
 
                 rimuoviDalCarrello(id) {
                     this.carrello = this.carrello.filter(x => x.postazione.id !== id);
+                },
+
+                toggleCarrello() {
+                    this.showCarrello = true;
                 },
 
                 confermaPrenotazione() {

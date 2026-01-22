@@ -21,11 +21,22 @@
         <partial name="_StatsCards" />
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex gap-2">
+    <div class="d-flex align-items-center justify-content-end mb-3 gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-primary px-3 rounded border shadow-sm d-flex align-items-center" style="height: 48px;">
+                <span class="text-white fw-bold small text-uppercase me-2" style="white-space: nowrap;">
+                    Scegli data:
+                </span>
+                <input type="date" class="form-control border-0 fw-bold p-1 text-center responsive-date-picker"
+                    style="outline: none; box-shadow: none; background-color: rgba(255,255,255,0.9);"
+                    v-model="dataSelezionata" :min="minDate" v-on:change="caricaDatiMappa">
+            </div>
+
+            <span class="topbar-separator" aria-hidden="true"></span>
+
             <a href="#faq-section"
                 class="btn btn-info text-white border shadow-sm px-3 rounded d-flex align-items-center gap-2"
-                style="min-width: 110px; height: 48px; justify-content: center;">
+                style="min-width: 450px; height: 48px; justify-content: center ">
                 <i class="fa-solid fa-book-open"></i>
                 <span class="d-none d-md-inline fw-bold">Guida, leggi prima di iniziare con la prenotazione</span>
             </a>
@@ -37,13 +48,17 @@
             </a>
         </div>
 
-        <div class="bg-primary px-3 rounded border shadow-sm d-flex align-items-center" style="height: 48px;">
-            <span class="text-white fw-bold small text-uppercase me-2" style="white-space: nowrap;">
-                Scegli data:
-            </span>
-            <input type="date" class="form-control border-0 fw-bold p-1 text-center responsive-date-picker"
-                style="outline: none; box-shadow: none; background-color: rgba(255,255,255,0.9);"
-                v-model="dataSelezionata" :min="minDate" v-on:change="caricaDatiMappa">
+        <div class="sidebar-cart-icon-wrapper d-flex align-items-center justify-content-end" style="height: 48px;">
+            <button class="btn sidebar-cart-btn border shadow-sm px-3 rounded d-flex align-items-center gap-2"
+                style="min-width: 110px; height: 48px; justify-content: center;"
+                v-on:click="toggleCarrello"
+                :class="{ 'has-items': carrello && carrello.length > 0 }" aria-label="Carrello">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span v-if="carrello && carrello.length > 0"
+                    class="badge bg-danger rounded-pill sidebar-cart-badge">
+                    {{ carrello.length }}
+                </span>
+            </button>
         </div>
     </div>
 
