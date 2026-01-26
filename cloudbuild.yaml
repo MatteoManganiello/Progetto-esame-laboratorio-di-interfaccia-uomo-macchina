@@ -35,7 +35,10 @@ substitutions:
   _REPO: backend
   _IMAGE: template-web
   _SERVICE: template-web
-  # _TAG: local  <-- QUESTA RIGA È RIMOSSA, usiamo $SHORT_SHA che è automatico
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
+
+# --- AGGIUNTA FONDAMENTALE PER IL SERVICE ACCOUNT ---
+options:
+  logging: CLOUD_LOGGING_ONLY
