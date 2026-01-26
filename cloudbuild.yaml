@@ -1,16 +1,21 @@
 steps:
+  # 1. Costruisce l'immagine usando il Commit ID come tag
   - name: gcr.io/cloud-builders/docker
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
       - -f
       - Dockerfile
       - .
+
+  # 2. Carica l'immagine nel registro (Push)
   - name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
+
+  # 3. Aggiorna Cloud Run forzandolo a usare la nuova versione specifica
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
     args:
@@ -20,15 +25,17 @@ steps:
       - --region
       - ${_REGION}
       - --image
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
       - --platform
       - managed
       - --allow-unauthenticated
+
 substitutions:
   _REGION: europe-west1
   _REPO: backend
   _IMAGE: template-web
   _SERVICE: template-web
-  _TAG: local
+  # _TAG: local  <-- QUESTA RIGA È RIMOSSA, usiamo $SHORT_SHA che è automatico
+
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
