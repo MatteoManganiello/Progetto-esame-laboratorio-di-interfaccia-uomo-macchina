@@ -90,7 +90,7 @@ namespace Template.Services.Prenotazioni
                             UserId = userId,
                             NumeroPersone = item.NumeroPersone,
                             Note = request.Note,
-                            DataCreazione = DateTime.UtcNow,
+                            DataCreazione = DateTime.Now,
                             IsCancellata = false,
                             Prezzo = CalcolaPrezzo(postazione.Tipo, item.NumeroPersone)
                         };

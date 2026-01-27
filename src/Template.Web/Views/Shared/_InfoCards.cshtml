@@ -6,45 +6,7 @@
 
 <div v-if="!loading" class="row mt-4 mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
 
-    <div class="col-lg-4 mb-4 mb-lg-0">
-        <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-warning bg-opacity-10">
-            <div class="card-header bg-transparent border-bottom border-warning border-opacity-25 pt-4 px-4">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-1">
-                            <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Ultimi Ordini
-                        </h6>
-                        <small class="text-muted d-block" style="font-size: 0.75em; line-height: 1.4;">
-                            In questa sezione puoi visualizzare gli ultimi ordini da te effettuati.
-                        </small>
-                    </div>
-                    <span class="badge bg-warning text-dark rounded-pill shadow-sm">{{ storicoOrdini.length }}</span>
-                </div>
-            </div>
-            <div class="card-body px-0">
-                <div v-if="storicoOrdini.length === 0" class="text-center text-muted py-4">
-                    <small>Nessuna prenotazione recente.</small>
-                </div>
-                <div v-else class="list-group list-group-flush">
-                    <div v-for="(ordine, index) in storicoOrdini.slice(0, 4)" :key="index"
-                        class="list-group-item bg-transparent px-4 border-0 d-flex justify-content-between align-items-center mb-1">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded-circle p-2 me-3"
-                                :class="ordine.tipo === 'Ristorante' ? 'bg-warning bg-opacity-10 text-warning' : 'bg-info bg-opacity-10 text-info'">
-                                <i class="fa-solid"
-                                    :class="ordine.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-desktop'"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark small">{{ ordine.descrizione }}</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ ordine.data }}</div>
-                            </div>
-                        </div>
-                        <span class="fw-bold text-dark small">{{ ordine.prezzo }}€</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @await Component.InvokeAsync("UltimiOrdini")
 
     <div class="col-lg-4 mb-4 mb-lg-0">
         <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-primary bg-opacity-25">
@@ -119,4 +81,3 @@
     </div>
 
 </div>
-

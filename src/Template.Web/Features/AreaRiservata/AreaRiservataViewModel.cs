@@ -14,9 +14,13 @@ namespace Template.Web.Features.AreaRiservata
 
     public class OrdineViewModel
     {
+        public int Id { get; set; }
         public DateTime Data { get; set; }
         public string Descrizione { get; set; }
         public decimal Prezzo { get; set; }
+
+        // Data = DataCreazione, quindi la logica è corretta
+        public bool Cancellabile => (DateTime.Now - Data).TotalHours < 1;
     }
 
     public class AcquistoFrequenteViewModel

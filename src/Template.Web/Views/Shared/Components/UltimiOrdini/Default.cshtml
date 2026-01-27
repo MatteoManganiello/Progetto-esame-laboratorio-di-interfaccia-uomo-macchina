@@ -1,0 +1,64 @@
+@model List<Template.Web.Features.Shared.UltimiOrdiniViewComponent.UltimoOrdineDto>
+
+<div class="col-lg-4 mb-4 mb-lg-0">
+    <div class="card border border-dark border-opacity-10 shadow-sm h-100 bg-warning bg-opacity-10">
+        <div class="card-header bg-transparent border-bottom border-warning border-opacity-25 py-3 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Ultimi Ordini
+                        </h6>
+                        <span class="badge bg-warning text-dark rounded-pill shadow-sm" style="font-size: 0.75em;">
+                            @Model.Count
+                        </span>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.75em; line-height: 1.2;">
+                        Visualizza gli ultimi ordini effettuati.
+                    </small>
+                </div>
+
+                <div class="ms-3">
+                    <a asp-controller="AreaRiservata" asp-action="Index" asp-fragment="ordini"
+                        class="btn btn-sm btn-danger fw-bold shadow-sm text-nowrap px-3">
+                        Cancella prenotazione
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-body px-0">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center text-muted py-4">
+                    <small>Nessuna prenotazione recente.</small>
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var ordine in Model)
+                    {
+                        <div class="list-group-item bg-transparent px-4 border-0 d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-2 me-3"
+                                    class="@(ordine.Tipo == "Ristorante" ? "bg-warning bg-opacity-10 text-warning" : "bg-info bg-opacity-10 text-info")">
+                                    <i class="fa-solid @(ordine.Tipo == "Ristorante" ? "fa-utensils" : "fa-desktop")"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">@ordine.Descrizione</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">@ordine.Data.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <span class="fw-bold text-dark small">@ordine.Prezzo€</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -8,9 +8,7 @@
 }
 
 <div class="container-fluid mt-4">
-    <!-- KPI Cards -->
     <div class="row mb-4">
-        <!-- Totale Utenti -->
         <div class="col-md-3 mb-3">
             <div class="card border-primary h-100 bg-primary bg-opacity-10">
                 <div class="card-body">
@@ -25,7 +23,6 @@
             </div>
         </div>
 
-        <!-- Prenotazioni Attive -->
         <div class="col-md-3 mb-3">
             <div class="card border-success h-100 bg-success bg-opacity-10">
                 <div class="card-body">
@@ -40,7 +37,6 @@
             </div>
         </div>
 
-        <!-- Spesa Totale -->
         <div class="col-md-3 mb-3">
             <div class="card border-warning h-100 bg-warning bg-opacity-10">
                 <div class="card-body">
@@ -55,7 +51,6 @@
             </div>
         </div>
 
-        <!-- Spesa Media -->
         <div class="col-md-3 mb-3">
             <div class="card border-info h-100 bg-info bg-opacity-10">
                 <div class="card-body">
@@ -79,9 +74,9 @@
     }
 
     <div class="row mb-4">
-        <div class="col-lg-6">
+        <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-dark text-white d-flex align-items-center">
+                <div class="card-header text-white d-flex align-items-center" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
                     <i class="fa-solid fa-shield-halved me-2"></i>
                     <h5 class="mb-0">Notifiche per Admin</h5>
                 </div>
@@ -89,11 +84,7 @@
                     <form asp-controller="SuperAdmin" asp-action="NotificheAdmin" method="post">
                         @Html.AntiForgeryToken()
                         <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Data</label>
-                                <input class="form-control" type="date" name="Data" />
-                            </div>
-                            <div class="col-md-9">
+                            <div class="col-12">
                                 <label class="form-label">Titolo</label>
                                 <input class="form-control" name="Titolo" placeholder="Es. Aggiornamento policy" />
                             </div>
@@ -103,7 +94,7 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <button type="submit" class="btn btn-dark">
+                            <button type="submit" class="btn btn-success" ;">
                                 <i class="fa-solid fa-paper-plane me-2"></i>Invia notifica
                             </button>
                         </div>
@@ -111,9 +102,51 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-6">
+
+        <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary text-white d-flex align-items-center">
+                <div class="card-header text-white d-flex align-items-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <i class="fas fa-list me-2"></i>
+                    <h5 class="mb-0">Ultimi Ordini Utenti</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentOrders == null || !Model.RecentOrders.Any())
+                    {
+                        <p class="text-muted mb-0">Nessun ordine recente.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Data</th>
+                                        <th>Descrizione</th>
+                                        <th class="text-end">Prezzo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var o in Model.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td><small>@o.UserEmail</small></td>
+                                            <td><small>@o.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small></td>
+                                            <td>@o.Descrizione</td>
+                                            <td class="text-end">€@o.Prezzo.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header text-white d-flex align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <i class="fa-solid fa-chart-pie me-2"></i>
                     <h5 class="mb-0">Spesa per sezione</h5>
                 </div>
@@ -143,12 +176,10 @@
     </div>
 
 
-    <!-- Tables Row -->
     <div class="row">
-        <!-- Postazioni Più Prenotate -->
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header bg-secondary text-white">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%);">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-building"></i> Postazioni Più Prenotate
                     </h5>
@@ -179,16 +210,12 @@
             </div>
         </div>
 
-        <!-- Utenti con Maggior Spesa -->
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <div class="card-header text-white d-flex align-items-center" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-star"></i> Top Utenti per Spesa
                     </h5>
-                    <a href="@Url.Action("UtentiDettagli", "SuperAdmin")" class="btn btn-sm btn-outline-light">
-                        Vedi Tutti
-                    </a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-sm mb-0">
@@ -220,7 +247,6 @@
     </div>
 </div>
 
-<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 <script>
@@ -310,7 +336,8 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .card-header {
+    /* RIMOSSO: Il bordo bianco sotto i gradienti non stava bene */
+    /* .card-header {
         border-bottom: 2px solid rgba(255,255,255,0.1);
-    }
+    } */
 </style>

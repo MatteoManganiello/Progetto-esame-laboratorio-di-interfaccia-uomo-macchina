@@ -58,6 +58,9 @@ namespace Template.Web.Features.SuperAdmin
                 return Forbid();
             }
 
+            // Forza la data di invio alla data corrente del server (form non invia più la data)
+            notifica.Data = DateTime.Now.ToString("yyyy-MM-dd");
+
             AdminComunicazioniStore.AddSuperAdminToAdmin(notifica);
             TempData["SuccessMessageSuperAdmin"] = "Notifica inviata agli admin.";
             return RedirectToAction(nameof(Dashboard));
@@ -142,6 +145,19 @@ namespace Template.Web.Features.SuperAdmin
             var weekEnd = weekStart.AddDays(7);
             stats.PrenotazioniSettimanali = await _context.Prenotazioni
                 .CountAsync(p => p.DataCreazione >= weekStart && p.DataCreazione < weekEnd);
+
+            // 13. Ultimi ordini (per SuperAdmin view) - últimos 20
+            stats.RecentOrders = await (from p in _context.Prenotazioni.Where(p => !p.IsCancellata)
+                                        join u in _context.Users on p.UserId equals u.Id.ToString()
+                                        join pos in _context.Postazioni on p.PostazioneId equals pos.Id
+                                        orderby p.DataCreazione descending
+                                        select new RecentOrderDto
+                                        {
+                                            UserEmail = u.Email,
+                                            DataCreazione = p.DataCreazione,
+                                            Descrizione = pos.Nome + (p.NumeroPersone > 1 ? $" (x{p.NumeroPersone})" : ""),
+                                            Prezzo = p.Prezzo
+                                        }).Take(20).ToListAsync();
 
             return stats;
         }
@@ -309,6 +325,7 @@ namespace Template.Web.Features.SuperAdmin
         public List<GiornataStatsDto> StatsGiornaliere { get; set; }
         public List<SpesaSezioneDto> SpesaPerSezione { get; set; }
         public int PrenotazioniSettimanali { get; set; }
+        public List<RecentOrderDto> RecentOrders { get; set; }
     }
 
     public class PostazioneStatsDto
@@ -349,5 +366,13 @@ namespace Template.Web.Features.SuperAdmin
         public string Ruolo { get; set; }
         public int NumPrenotazioni { get; set; }
         public decimal SpesaTotale { get; set; }
+    }
+
+    public class RecentOrderDto
+    {
+        public string UserEmail { get; set; }
+        public DateTime DataCreazione { get; set; }
+        public string Descrizione { get; set; }
+        public decimal Prezzo { get; set; }
     }
 }
