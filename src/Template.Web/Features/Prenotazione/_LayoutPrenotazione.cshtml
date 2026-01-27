@@ -51,7 +51,7 @@
         <div class="sidebar-cart-icon-wrapper d-flex align-items-center justify-content-end" style="height: 48px;">
             <button class="btn sidebar-cart-btn border shadow-sm px-3 rounded d-flex align-items-center gap-2"
                 style="min-width: 110px; height: 48px; justify-content: center;"
-                v-on:click="toggleCarrello"
+                data-bs-toggle="offcanvas" data-bs-target="#offcanvasCarrello" aria-controls="offcanvasCarrello"
                 :class="{ 'has-items': carrello && carrello.length > 0 }" aria-label="Carrello">
                 <i class="fa-solid fa-basket-shopping"></i>
                 <span v-if="carrello && carrello.length > 0"
@@ -59,6 +59,18 @@
                     {{ carrello.length }}
                 </span>
             </button>
+        </div>
+        <!-- Offcanvas Carrello -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrello" aria-labelledby="offcanvasCarrelloLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasCarrelloLabel">
+                    <i class="fa-solid fa-basket-shopping me-2"></i>Il tuo Carrello
+                </h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Chiudi"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                @await Html.PartialAsync("Carrello")
+            </div>
         </div>
     </div>
 
