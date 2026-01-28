@@ -1,5 +1,15 @@
 steps:
-  # 1. Costruisce l'immagine usando il Commit ID come tag
+  # 1. Assicura che gli oggetti Git LFS siano scaricati nel workspace (necessario per file video grandi)
+  - name: alpine:3.18
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        apk add --no-cache git git-lfs ca-certificates && \
+        git lfs install && \
+        git lfs pull || true
+
+  # 2. Costruisce l'immagine usando il Commit ID come tag
   - name: gcr.io/cloud-builders/docker
     args:
       - build
