@@ -9,16 +9,15 @@
             <video class="splash-video" autoplay muted loop playsinline>
                 <source src="/videos/video_login_registrazione.mp4" type="video/mp4" />
             </video>
-            <div class="splash-overlay p-5">
-                <h1 class="display-5 fw-bold">Crea il tuo account</h1>
-                <p class="lead">Registrati e inizia subito a prenotare.</p>
-            </div>
+
         </div>
         <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
             <div class="w-100" style="max-width: 520px;">
-                <h2 class="text-center mb-4">Registrati</h2>
-                
-                <form asp-action="Register" method="post" role="form" autocomplete="off">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="text-center mb-4">Registrati</h2>
+
+                        <form asp-action="Register" method="post" role="form" autocomplete="off">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="row">
@@ -66,14 +65,16 @@
                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
 
-                    <div class="form-group text-center mt-4">
-                        <button type="submit" class="btn btn-success btn-lg w-100 mb-3">Registrati</button>
-                        
-                        <div>
-                            Hai già un account? <a href="@Url.Action("Login", "Login")">Accedi qui</a>
-                        </div>
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-success btn-lg w-100 mb-3">Registrati</button>
+
+                                <div>
+                                    Hai già un account? <a href="@Url.Action("Login", "Login")">Accedi qui</a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
