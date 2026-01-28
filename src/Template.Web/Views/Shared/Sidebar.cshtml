@@ -2,12 +2,9 @@
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
 }
 
+<div class="flex-grow-1 d-flex flex-column pt-5 mt-4" style="overflow-y: auto; overflow-x: hidden;">
 
-<div class="flex-grow-1" style="overflow-y: auto; overflow-x: hidden; margin-top: 20%;">
-
-    <div class="flex-grow-1" style="overflow-y: auto; overflow-x: hidden; ">
-
-
+    <div class="flex-grow-1 px-3" style="overflow-y: auto; overflow-x: hidden;">
 
         <div v-if="postazioneSelezionata" class="animate__animated animate__fadeIn d-flex flex-column">
 
@@ -16,9 +13,9 @@
                         'text-state-free': postazioneSelezionata.postiOccupati == 0,
                         'text-state-partial': postazioneSelezionata.postiOccupati > 0 && postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali,
                         'text-state-full': postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali
-                     }">
+                      }">
                     <i class="fa-solid me-2"
-                        :class="postazioneSelezionata.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-building'"></i>
+                       :class="postazioneSelezionata.tipo === 'Ristorante' ? 'fa-utensils' : 'fa-building'"></i>
                     {{ postazioneSelezionata.tipo }}
                 </div>
 
@@ -31,15 +28,15 @@
                       }">
                     <i class="fa-solid fa-circle me-1 small"></i>
                     <span v-if="postazioneSelezionata.postiOccupati == 0">Libero</span>
-                    <span v-else-if="postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali">Completo
-                        / Occupato</span>
+                    <span v-else-if="postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali">Completo / Occupato</span>
                     <span v-else>Parzialmente Occupato</span>
                 </span>
             </div>
 
             <div>
                 <div v-if="postazioneSelezionata.tipo === 'Ristorante'"
-                    class="booking-card bg-light rounded-4 p-4 mb-3">
+                     class="booking-card bg-light rounded-4 p-4 mb-3">
+                    
                     <div v-if="postazioneSelezionata.postiTotali > postazioneSelezionata.postiOccupati">
                         <label class="form-label fw-bold text-dark mb-3 d-block">Quanti posti vuoi prenotare?</label>
                         <div class="input-group input-group-lg mb-4 shadow-sm">
@@ -47,15 +44,15 @@
                                 <i class="fa-solid fa-user-group"></i>
                             </span>
                             <select class="form-select border-start-0 fw-bold text-dark ps-2"
-                                v-model="numeroPostiRichiesti" style="box-shadow: none;">
-                                <option
-                                    v-for="n in (postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati)"
-                                    :value="n">
+                                    v-model="numeroPostiRichiesti" style="box-shadow: none;">
+                                <option v-for="n in Math.max(0, postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati)"
+                                        :value="n">
                                     {{ n }} {{ n === 1 ? 'Persona' : 'Persone' }}
                                 </option>
                             </select>
                         </div>
                     </div>
+                    
                     <div v-else class="alert alert-danger mb-4 shadow-sm border-0 d-flex align-items-center">
                         <i class="fa-solid fa-circle-exclamation me-3 fa-lg"></i>
                         <div><strong>Posti esauriti.</strong></div>
@@ -69,8 +66,7 @@
                                   'bg-state-full': postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali
                               }">
                             <i class="fa-solid fa-chair me-2 opacity-50"></i>
-                            <strong>{{ postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati
-                                }}</strong>
+                            <strong>{{ Math.max(0, postazioneSelezionata.postiTotali - postazioneSelezionata.postiOccupati) }}</strong>
                             <span class="opacity-50 mx-1">/</span> {{ postazioneSelezionata.postiTotali }}
                         </span>
                     </div>
@@ -79,39 +75,36 @@
                 <div v-else class="booking-card rounded-4 p-4 mb-3 d-flex align-items-start" :class="{
                         'bg-state-free': postazioneSelezionata.postiOccupati == 0,
                         'bg-state-full': postazioneSelezionata.postiOccupati > 0
-                     }">
+                      }">
                     <div class="bg-white p-3 rounded-circle me-3 shadow-sm" :class="{
                             'text-state-free': postazioneSelezionata.postiOccupati == 0,
                             'text-state-full': postazioneSelezionata.postiOccupati > 0
-                         }">
+                          }">
                         <i class="fa-solid fa-xl"
-                            :class="postazioneSelezionata.postiOccupati == 0 ? 'fa-door-open' : 'fa-door-closed'"></i>
+                           :class="postazioneSelezionata.postiOccupati == 0 ? 'fa-door-open' : 'fa-door-closed'"></i>
                     </div>
                     <div>
                         <h5 class="fw-bold mb-1"
                             :class="postazioneSelezionata.postiOccupati == 0 ? 'text-state-free' : 'text-state-full'">
-                            {{ postazioneSelezionata.postiOccupati == 0 ? 'Prenotazione Esclusiva' : 'Non Disponibile'
-                            }}
+                            {{ postazioneSelezionata.postiOccupati == 0 ? 'Prenotazione Esclusiva' : 'Non Disponibile' }}
                         </h5>
                         <p class="opacity-75 small mb-0 lh-sm"
-                            :class="postazioneSelezionata.postiOccupati == 0 ? 'text-state-free' : 'text-state-full'">
-                            <span v-if="postazioneSelezionata.postiOccupati == 0">Uso esclusivo. Max {{
-                                postazioneSelezionata.postiTotali }} persone.</span>
+                           :class="postazioneSelezionata.postiOccupati == 0 ? 'text-state-free' : 'text-state-full'">
+                            <span v-if="postazioneSelezionata.postiOccupati == 0">Uso esclusivo. Max {{ postazioneSelezionata.postiTotali }} persone.</span>
                             <span v-else>Questo spazio è già occupato.</span>
                         </p>
                     </div>
                 </div>
 
-                <div v-if="postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali || (postazioneSelezionata.tipo === 'Ristorante' && postazioneSelezionata.postiTotali > postazioneSelezionata.postiOccupati)"
-                    class="bg-white border rounded-4 p-4 shadow-sm mb-3">
+                <div v-if="postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali"
+                     class="bg-white border rounded-4 p-4 shadow-sm mb-3">
 
                     <h6 class="fw-bold text-uppercase text-muted small mb-3 spacing-1">Costo Selezione Attuale</h6>
 
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-dark">
                             <i class="fa-solid fa-tag me-2 text-muted"></i>
-                            <span v-if="postazioneSelezionata.tipo === 'Ristorante'">Menu x {{ numeroPostiRichiesti
-                                }}</span>
+                            <span v-if="postazioneSelezionata.tipo === 'Ristorante'">Menu x {{ numeroPostiRichiesti }}</span>
                             <span v-else>Tariffa Giornaliera</span>
                         </span>
                         <span class="fw-semibold">
@@ -131,60 +124,62 @@
             </div>
         </div>
 
-        <div v-else-if="!carrello || carrello.length === 0"
-            class="text-center h-100 d-flex flex-column justify-content-center align-items-center animate__animated animate__fadeIn gap-4">
-            <div class="sidebar-logo-wrapper mb-4">
-                <img src="~/images/smarthub_completo.png" alt="Immagine Sidebar">
+        <div v-else
+             class="text-center h-100 d-flex flex-column justify-content-center align-items-center animate__animated animate__fadeIn">
+            
+            <div class="sidebar-logo-wrapper mb-5 w-100 d-flex justify-content-center">
+                <img src="~/images/smarthub_completo.png" alt="Immagine Sidebar" style="max-width: 70%;">
             </div>
 
-            <div class="legend-box bg-light p-4 rounded-4 text-start w-100 border-top border-light-subtle shadow-sm">
+            <div class="legend-box bg-light p-4 rounded-4 text-start w-100 shadow-sm mb-4">
                 <h6 class="fw-bold small text-uppercase text-muted mb-3 spacing-1 ls-1">Legenda Mappa</h6>
-                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3">
                     <span class="legend-indicator bg-success rounded-2 shadow-sm me-3"></span>
                     <div><span class="d-block fw-bold text-dark fs-6">Libero</span></div>
                 </div>
-                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3">
                     <span class="legend-indicator bg-warning rounded-2 shadow-sm me-3"></span>
                     <div><span class="d-block fw-bold text-dark fs-6">Parzialmente Occupato</span></div>
                 </div>
-                <div class="d-flex align-items-center mb-3 p-2 bg-white rounded-3 border border-light-subtle">
+                <div class="d-flex align-items-center mb-2 p-2 bg-white rounded-3">
                     <span class="legend-indicator bg-danger rounded-2 shadow-sm me-3"></span>
                     <div><span class="d-block fw-bold text-dark fs-6">Occupato / Pieno</span></div>
                 </div>
             </div>
+
+            <div class="text-muted opacity-75 mt-2 animate__animated animate__pulse animate__infinite infinite">
+                <i class="fa-solid fa-arrow-pointer mb-2 fs-3"></i>
+                <div class="small fw-semibold">
+                    Clicca su una postazione nella mappa<br>per vedere i dettagli.
+                </div>
+            </div>
+
         </div>
 
     </div>
 
-
-    <div class="p-4 bg-white z-1">
-
-        <!-- info cards moved to Carrello -->
-
-        <div v-if="carrello && carrello.length > 0" class="mb-3 d-grid">
-            <button class="btn btn-primary fw-bold rounded-pill" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCarrello">
-                Vai al Carrello
-            </button>
-        </div>
+    <div class="p-4 bg-white z-1 border-top mt-auto">
 
         <div class="d-grid gap-3">
-
-            <button v-if="postazioneSelezionata"
-                class="btn btn-success btn-lg btn-sm-md py-3 py-md-2 fw-bold shadow-sm rounded-pill text-white"
-                v-on:click="aggiungiAlCarrello">
+            
+            <button v-if="postazioneSelezionata && postazioneSelezionata.postiOccupati < postazioneSelezionata.postiTotali"
+                    class="btn btn-success btn-lg btn-sm-md py-3 py-md-2 fw-bold shadow-sm rounded-pill text-white"
+                    v-on:click="aggiungiAlCarrello">
                 Aggiungi al Carrello
             </button>
-
-
+            
+            <button v-else-if="postazioneSelezionata && postazioneSelezionata.postiOccupati >= postazioneSelezionata.postiTotali"
+                    class="btn btn-secondary btn-lg btn-sm-md py-3 py-md-2 fw-bold shadow-sm rounded-pill border-0 disabled" 
+                    disabled>
+                Non Disponibile / Completo
+            </button>
 
             <button v-if="postazioneSelezionata"
-                class="btn btn-danger btn-lg btn-sm-md py-2 py-md-1 fw-bold shadow-sm rounded-pill border-0"
-                v-on:click="postazioneSelezionata = null">
+                    class="btn btn-outline-danger btn-lg btn-sm-md py-2 py-md-1 fw-bold shadow-sm rounded-pill"
+                    v-on:click="postazioneSelezionata = null">
                 Annulla selezione
             </button>
 
-    </div>
-
-
+        </div>
     </div>
 </div>
