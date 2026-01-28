@@ -5,12 +5,36 @@
 
 <div class="container-fluid min-vh-100 p-0">
     <div class="row g-0 min-vh-100">
-        <div class="col-lg-6 d-none d-lg-flex splash-image">
-            <video class="splash-video" autoplay muted loop playsinline>
-                <source src="/videos/video_login_registrazione.mp4" type="video/mp4" />
-            </video>
+        <div class="col-lg-6 d-none d-lg-flex splash-image align-items-center justify-content-center">
+            <div id="splashCarouselLogin" class="carousel slide splash-carousel w-100 h-80" data-bs-ride="carousel"
+                data-bs-interval="4000">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#splashCarouselLogin" data-bs-slide-to="0" class="active"
+                        aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#splashCarouselLogin" data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#splashCarouselLogin" data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+                </div>
 
+                <div class="carousel-inner h-80">
+                    <div class="carousel-item active h-80">
+                        <img src="~/images/img_carousel_1.jpeg" class="d-block w-90 h-90 splash-carousel-img mx-auto"
+                            style="object-fit: contain;" alt="slide-1" />
+                    </div>
+                    <div class="carousel-item h-80">
+                        <img src="~/images/img_carousel_2.jpeg" class="d-block w-90 h-90 splash-carousel-img mx-auto"
+                            style="object-fit: contain;" alt="slide-2" />
+                    </div>
+                    <div class="carousel-item h-80">
+                        <img src="~/images/img_carousel_3.jpeg" class="d-block w-90 h-90 splash-carousel-img mx-auto"
+                            style="object-fit: contain;" alt="slide-3" />
+                    </div>
+                </div>
+
+            </div>
         </div>
+        
         <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
             <div class="w-100" style="max-width: 520px;">
                 <div class="card shadow-sm">
@@ -86,13 +110,10 @@
         overflow: hidden;
         border-radius: 16px;
     }
-    .splash-video {
-        position: absolute;
-        inset: 0;
+    .splash-carousel-img {
+        object-fit: cover;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        padding: 24px;
         border-radius: 16px;
     }
     .splash-overlay {
