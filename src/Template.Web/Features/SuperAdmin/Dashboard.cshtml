@@ -103,46 +103,65 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header text-white d-flex align-items-center" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
-                    <i class="fas fa-list me-2"></i>
-                    <h5 class="mb-0">Ultimi Ordini Utenti</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.RecentOrders == null || !Model.RecentOrders.Any())
-                    {
-                        <p class="text-muted mb-0">Nessun ordine recente.</p>
-                    }
-                    else
-                    {
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0">
-                                <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
-                                    <tr>
-                                        <th>Email</th>
-                                        <th>Data</th>
-                                        <th>Descrizione</th>
-                                        <th class="text-end">Prezzo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var o in Model.RecentOrders)
-                                    {
-                                        <tr>
-                                            <td><small>@o.UserEmail</small></td>
-                                            <td><small>@o.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small></td>
-                                            <td>@o.Descrizione</td>
-                                            <td class="text-end">€@o.Prezzo.ToString("N2")</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                </div>
-            </div>
+<div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+        <div class="card-header text-white d-flex align-items-center" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+            <i class="fas fa-list me-2"></i>
+            <h5 class="mb-0 text-truncate">Ultimi Ordini</h5>
         </div>
+        
+        <div class="card-body p-0"> @if (Model.RecentOrders == null || !Model.RecentOrders.Any())
+            {
+                <div class="p-3">
+                    <p class="text-muted mb-0">Nessun ordine recente.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive" style="max-height: 330px; overflow-y: auto;">
+                    <table class="table table-sm table-hover mb-0 align-middle">
+                        <thead class="table-light small text-uppercase text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th class="ps-3">Utente/Data</th>
+                                <th class="d-none d-sm-table-cell">Descrizione</th>
+                                <th class="text-end pe-3">Prezzo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            @foreach (var o in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td class="ps-3" style="min-width: 140px; max-width: 180px;">
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold text-dark text-truncate" title="@o.UserEmail">
+                                                @o.UserEmail
+                                            </span>
+                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="far fa-clock me-1"></i>@o.DataCreazione.ToString("dd/MM HH:mm")
+                                            </small>
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="d-none d-sm-table-cell" style="max-width: 120px;">
+                                        <div class="text-truncate text-muted small" title="@o.Descrizione">
+                                            @o.Descrizione
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="text-end pe-3 text-nowrap">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold">
+                                            € @o.Prezzo.ToString("N2")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">

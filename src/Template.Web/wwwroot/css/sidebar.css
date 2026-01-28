@@ -76,7 +76,7 @@
 
 .sidebar-card {
     overflow-y: auto;
-    max-height: calc(150vh - 445px);
+    max-height: calc(200vh - 150px);
 }
 
 .booking-card {
