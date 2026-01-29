@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Template.Data;
 
@@ -11,9 +12,11 @@ using Template.Data;
 namespace Template.Migrations
 {
     [DbContext(typeof(TemplateDbContext))]
-    partial class TemplateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260129155912_AddNotificaTable")]
+    partial class AddNotificaTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,31 +63,6 @@ namespace Template.Migrations
                         .IsUnique();
 
                     b.ToTable("MenuSettimanali");
-                });
-
-            modelBuilder.Entity("Template.Entities.MessaggioSuperAdmin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Contenuto")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Data")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("DataCreazione")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Titolo")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MessaggiSuperAdmin");
                 });
 
             modelBuilder.Entity("Template.Entities.Notifica", b =>

@@ -15,6 +15,8 @@ namespace Template.Data
         public DbSet<Postazione> Postazioni { get; set; }
         public DbSet<Prenotazione> Prenotazioni { get; set; }
         public DbSet<MenuSettimanale> MenuSettimanali { get; set; }
+        public DbSet<Notifica> Notifiche { get; set; }
+        public DbSet<MessaggioSuperAdmin> MessaggiSuperAdmin { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
