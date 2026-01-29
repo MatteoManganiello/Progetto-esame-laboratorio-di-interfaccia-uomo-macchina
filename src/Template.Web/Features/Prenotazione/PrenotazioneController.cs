@@ -107,12 +107,10 @@ namespace Template.Web.Features.Prenotazione
 
         private object[] GetNotificheAzienda()
         {
-            var raw = HttpContext.Session.GetString("Admin.NotificheAzienda");
-            var list = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<Template.Web.Features.Admin.NotificaItem>>(raw ?? "[]")
-                ?? new System.Collections.Generic.List<Template.Web.Features.Admin.NotificaItem>();
-
-            return list
-                .Where(n => !string.IsNullOrWhiteSpace(n?.Titolo) || !string.IsNullOrWhiteSpace(n?.Contenuto) || !string.IsNullOrWhiteSpace(n?.Data))
+            // Legge le notifiche dal database (entità Notifica)
+            var list = _dbContext.Notifiche
+                .OrderByDescending(n => n.DataCreazione)
+                .Take(3)
                 .Select(n => new
                 {
                     data = n.Data,
@@ -120,6 +118,8 @@ namespace Template.Web.Features.Prenotazione
                     contenuto = n.Contenuto
                 })
                 .ToArray();
+
+            return list;
         }
     }
 }

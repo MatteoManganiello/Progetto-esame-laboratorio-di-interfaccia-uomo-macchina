@@ -5,6 +5,7 @@ using Microsoft.Extensions.Localization;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Linq;
 using Template.Data;
 using Template.Entities;
 using Template.Infrastructure;
@@ -46,7 +47,18 @@ namespace Template.Web.Features.Admin
                 return Unauthorized();
 
             ViewBag.Title = "Dashboard Admin";
-            ViewBag.NotificheSuperAdmin = AdminComunicazioniStore.GetSuperAdminToAdmin();
+            // Carica messaggi inviati dal SuperAdmin dal database e mappali su NotificaItem per la view
+            var messaggi = _dbContext.MessaggiSuperAdmin
+                .OrderByDescending(m => m.DataCreazione)
+                .Take(20)
+                .Select(m => new NotificaItem
+                {
+                    Titolo = m.Titolo,
+                    Contenuto = m.Contenuto,
+                    Data = m.Data
+                })
+                .ToList();
+            ViewBag.NotificheSuperAdmin = messaggi;
             return View();
         }
 
@@ -132,9 +144,21 @@ namespace Template.Web.Features.Admin
             if (!IsAdmin())
                 return Unauthorized();
 
-            var raw = HttpContext.Session.GetString(NotificheKey);
-            var notificheList = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<NotificaItem>>(raw ?? "[]")
-                ?? new System.Collections.Generic.List<NotificaItem>();
+            // Carica tutte le notifiche dal database e mappale su NotificaItem per la view
+            var notificheDb = _dbContext.Notifiche.ToList();
+            var notificheList = notificheDb.Select(n => new NotificaItem
+            {
+                Data = n.Data,
+                Titolo = n.Titolo,
+                Contenuto = n.Contenuto
+            }).ToList();
+
+            // Garantire almeno 3 elementi per la UI (comportamento precedente)
+            while (notificheList.Count < 3)
+            {
+                notificheList.Add(new NotificaItem());
+            }
+
             ViewBag.NotificheList = notificheList;
             return View();
         }
@@ -147,8 +171,26 @@ namespace Template.Web.Features.Admin
 
             var cleaned = (notifiche ?? new System.Collections.Generic.List<NotificaItem>())
                 .FindAll(n => !string.IsNullOrWhiteSpace(n?.Titolo) || !string.IsNullOrWhiteSpace(n?.Contenuto) || !string.IsNullOrWhiteSpace(n?.Data));
-            var json = System.Text.Json.JsonSerializer.Serialize(cleaned);
-            HttpContext.Session.SetString(NotificheKey, json);
+
+            // Rimuovi tutte le notifiche precedenti dal database
+            var tutte = _dbContext.Notifiche.ToList();
+            _dbContext.Notifiche.RemoveRange(tutte);
+            _dbContext.SaveChanges();
+
+            // Salva le nuove notifiche mappando da NotificaItem a Template.Entities.Notifica
+            foreach (var n in cleaned)
+            {
+                var notificaDb = new Template.Entities.Notifica
+                {
+                    Titolo = n.Titolo,
+                    Contenuto = n.Contenuto,
+                    Data = n.Data,
+                    DataCreazione = DateTime.UtcNow
+                };
+                _dbContext.Notifiche.Add(notificaDb);
+            }
+            _dbContext.SaveChanges();
+
             TempData["SuccessMessage"] = "Notifiche aziendali aggiornate.";
             return RedirectToAction(nameof(Notifiche));
         }

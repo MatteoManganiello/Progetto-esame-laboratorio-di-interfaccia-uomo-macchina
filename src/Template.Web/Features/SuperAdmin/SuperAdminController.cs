@@ -58,10 +58,17 @@ namespace Template.Web.Features.SuperAdmin
                 return Forbid();
             }
 
-            // Forza la data di invio alla data corrente del server (form non invia più la data)
-            notifica.Data = DateTime.Now.ToString("yyyy-MM-dd");
+            // Salva il messaggio nel database
+            var messaggio = new Template.Entities.MessaggioSuperAdmin
+            {
+                Titolo = notifica.Titolo,
+                Contenuto = notifica.Contenuto,
+                Data = DateTime.Now.ToString("yyyy-MM-dd"),
+                DataCreazione = DateTime.UtcNow
+            };
+            _context.MessaggiSuperAdmin.Add(messaggio);
+            _context.SaveChanges();
 
-            AdminComunicazioniStore.AddSuperAdminToAdmin(notifica);
             TempData["SuccessMessageSuperAdmin"] = "Notifica inviata agli admin.";
             return RedirectToAction(nameof(Dashboard));
         }
