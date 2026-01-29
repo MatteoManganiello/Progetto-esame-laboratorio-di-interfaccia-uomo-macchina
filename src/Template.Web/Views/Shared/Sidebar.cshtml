@@ -35,7 +35,7 @@
 
             <div>
                 <div v-if="postazioneSelezionata.tipo === 'Ristorante'"
-                     class="booking-card bg-light rounded-4 p-4 mb-3">
+                     class="booking-card bg-light rounded-4 p-2 mb-3">
                     
                     <div v-if="postazioneSelezionata.postiTotali > postazioneSelezionata.postiOccupati">
                         <label class="form-label fw-bold text-dark mb-3 d-block">Quanti posti vuoi prenotare?</label>
@@ -72,7 +72,7 @@
                     </div>
                 </div>
 
-                <div v-else class="booking-card rounded-4 p-4 mb-3 d-flex align-items-start" :class="{
+                <div v-else class="booking-card rounded-4 p-1 mb-3 d-flex align-items-start" :class="{
                         'bg-state-free': postazioneSelezionata.postiOccupati == 0,
                         'bg-state-full': postazioneSelezionata.postiOccupati > 0
                       }">
@@ -168,7 +168,7 @@
             </button>
 
             <button v-if="postazioneSelezionata"
-                    class="btn btn-outline-danger btn-lg btn-sm-md py-2 py-md-1 fw-bold shadow-sm rounded-pill"
+                    class="btn btn-danger btn-lg btn-sm-md py-2 py-md-1 fw-bold shadow-sm rounded-pill"
                     v-on:click="postazioneSelezionata = null">
                 Annulla selezione
             </button>
