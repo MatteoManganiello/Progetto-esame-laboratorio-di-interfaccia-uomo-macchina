@@ -61,6 +61,31 @@ Il sistema è stato pensato per essere facile da usare per chiunque. Ecco i pass
 2.  **Grafici e Guide:** intorno alla mappa ci sono delle card utili. Alcune mostrano grafici per capire quanto è affollato l’ufficio. Altre spiegano regole e servizi disponibili.
 3.  **Carrello Unico:** l’utente può mettere tutto nel carrello (ad esempio postazione + ristorante) e confermare tutto insieme con un solo click.
 
+
+## Come avviare il progetto in locale
+
+Per eseguire l'applicazione sulla propria macchina di sviluppo, è necessario seguire questi passaggi per attivare il database e lanciare il server.
+
+### 1. Avvio del Database (XAMPP)
+Il progetto si appoggia a un database MySQL locale gestito tramite XAMPP.
+
+1.  Aprire il pannello di controllo di **XAMPP**.
+2.  Cliccare sul pulsante **Start** in corrispondenza del modulo **MySQL**.
+3.  Attendere che l'indicatore diventi verde e che appaia il numero di porta (solitamente 3306).
+
+### 2. Esecuzione dell'Applicazione (.NET)
+Una volta che il database è attivo:
+
+1.  Aprire il terminale (o PowerShell) all'interno della cartella radice del progetto.
+2.  Digitare il seguente comando per avviare l'applicazione con la funzionalità di *hot-reload* (ricarica automatica alle modifiche):
+
+    ```bash
+    dotnet watch run
+    ```
+
+3.  Attendere la compilazione: il browser si aprirà automaticamente mostrando la pagina iniziale dell'applicazione (solitamente su `https://localhost:7196` o porta simile).s
+
+
 ## Link utili
 
 * [Editor Floorplanner](https://floorplanner.com/projects/180160063/editor)
