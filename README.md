@@ -8,11 +8,16 @@
 
 ---
 
-## 1. Introduzione
-Il presente progetto illustra lo sviluppo di una web application dedicata alla prenotazione di postazioni di lavoro e servizi aziendali. 
-L’obiettivo principale è stato superare la rigidità dei tradizionali sistemi tabellari, offrendo un’interfaccia visiva e intuitiva, 
+1. Introduzione
+
+Il presente progetto illustra lo sviluppo di una web application dedicata alla prenotazione di postazioni di lavoro e servizi aziendali.
+L’obiettivo principale è stato superare la rigidità dei tradizionali sistemi tabellari, offrendo un’interfaccia visiva e intuitiva,
 nonché fornire una postazione o un’area di lavoro adatta a diverse tipologie di utenti, quali privati, studenti e altri profili.
 Il sistema consente agli utenti di visualizzare una mappa interattiva dell’ufficio, verificare la disponibilità in tempo reale e gestire prenotazioni multiple tramite un carrello.
+Inoltre, l’applicazione è strutturata secondo un modello a ruoli, così da separare chiaramente le funzionalità e i livelli di accesso:
+User (Utente): può effettuare e gestire le prenotazioni dei servizi disponibili.
+Admin: gestisce i contenuti e le informazioni operative visibili agli utenti (ad esempio notifiche aziendali e menù settimanale).
+SuperAdmin: supervisiona l’intero sistema, dispone di una dashboard con visione completa dei dati e può inviare notifiche agli admin, mantenendo un controllo globale sul funzionamento del sito.
 
 ---
 
