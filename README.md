@@ -1,73 +1,90 @@
-# Progetto, Laboratorio di Interfaccia Uomo-Macchina - Ce #
+Progetto, Laboratorio di Interfaccia Uomo-Macchina - Ce
 
-**Autore:** Matteo Manganiello 
+Autore: Matteo Manganiello
 
-**Corso:** Tecnologie dei Sistemi Informatici  
+Corso: Tecnologie dei Sistemi Informatici
 
-**Anno Accademico:** 2025/2026  
-
----
+Anno Accademico: 2025/2026
 
 1. Introduzione
 
-Il presente progetto illustra lo sviluppo di una web application dedicata alla prenotazione di postazioni di lavoro e servizi aziendali.
-L’obiettivo principale è stato superare la rigidità dei tradizionali sistemi tabellari, offrendo un’interfaccia visiva e intuitiva,
-nonché fornire una postazione o un’area di lavoro adatta a diverse tipologie di utenti, quali privati, studenti e altri profili.
-Il sistema consente agli utenti di visualizzare una mappa interattiva dell’ufficio, verificare la disponibilità in tempo reale e gestire prenotazioni multiple tramite un carrello.
-Inoltre, l’applicazione è strutturata secondo un modello a ruoli, così da separare chiaramente le funzionalità e i livelli di accesso:
-User (Utente): può effettuare e gestire le prenotazioni dei servizi disponibili.
-Admin: gestisce i contenuti e le informazioni operative visibili agli utenti (ad esempio notifiche aziendali e menù settimanale).
-SuperAdmin: supervisiona l’intero sistema, dispone di una dashboard con visione completa dei dati e può inviare notifiche agli admin, mantenendo un controllo globale sul funzionamento del sito.
+Questo progetto è una web application che serve per prenotare postazioni di lavoro e servizi aziendali.
+L’idea è evitare i classici sistemi a tabelle, che spesso sono scomodi e poco chiari, e sostituirli con una mappa visiva e facile da usare.
 
----
+L’utente può vedere una mappa interattiva dell’ufficio, controllare subito la disponibilità in tempo reale e fare più prenotazioni insieme usando un carrello.
 
-## 2. Obiettivi del progetto
+In più, l’applicazione è divisa in ruoli, così ognuno vede e fa solo quello che gli serve:
+
+User (Utente): prenota postazioni e servizi, e può anche cancellare le prenotazioni se cambia idea.
+
+Admin: aggiorna i contenuti che l’utente vede nella homepage, come le notifiche aziendali e il menù settimanale.
+
+SuperAdmin: è l’orchestratore del sito: può fare tutte le azioni degli altri ruoli, ha una dashboard con tutti i dati del sito e può inviare notifiche agli admin.
+
+L’applicazione è deployata online e gira su Google Cloud Run, quindi è accessibile tramite browser senza installare nulla.
+
+2. Obiettivi del progetto
+
 Gli obiettivi principali del progetto sono:
-- Rispettare l’ambiente di sviluppo, adottando il framework ASP.NET e seguendo lo standard architetturale MVC.
-- Realizzare una soluzione innovativa, ancora poco diffusa sul mercato, in particolare nell’ambito della gestione delle postazioni di lavoro.
-- Migliorare al massimo la user experience, offrendo un’interfaccia intuitiva, efficiente e orientata alle esigenze dell’utente.
 
----
+Usare l’ambiente di sviluppo richiesto, quindi ASP.NET e architettura MVC.
 
-## 3. Requisiti
+Creare una soluzione moderna, che non è ancora molto diffusa sul mercato, soprattutto per la gestione delle postazioni di lavoro.
 
-### 3.1 Requisiti funzionali
-- RF1: Visualizzazione Interattiva su Mappa Il sistema deve permettere la selezione delle risorse tramite una planimetria grafica interattiva, con feedback visivo immediato sullo stato (libero/occupato/parziale).
-- RF2: Gestione Ibrida e Carrello Multiplo Il sistema deve supportare prenotazioni multiple in un’unica sessione, gestendo contemporaneamente logiche a capienza (es. Ristorante) e a uso esclusivo (es. Sale Meeting).
+Rendere l’esperienza utente il più semplice e intuitiva possibile.
 
-### 3.2 Requisiti non funzionali
-- RNF1: User Experience Reattiva (SPA-like) L'interfaccia deve aggiornare dinamicamente dati e prezzi (tramite Vue.js) senza richiedere il ricaricamento della pagina web.
+3. Requisiti
+3.1 Requisiti funzionali
 
----
+RF1: Visualizzazione Interattiva su Mappa
+Il sistema deve permettere di scegliere le risorse tramite una planimetria interattiva, con colori chiari per capire subito lo stato (libero/occupato/parziale).
 
-## 4. Tecnologie utilizzate
+RF2: Gestione Ibrida e Carrello Multiplo
+Il sistema deve permettere prenotazioni multiple in una sola sessione, gestendo sia risorse a capienza (es. ristorante) sia risorse a uso esclusivo (es. sale meeting).
+
+3.2 Requisiti non funzionali
+
+RNF1: User Experience Reattiva (SPA-like)
+L’interfaccia deve aggiornare dati e prezzi in modo dinamico (con Vue.js) senza ricaricare la pagina.
+
+4. Tecnologie utilizzate
+
 Per lo sviluppo del progetto sono state utilizzate le seguenti tecnologie:
 
 4.1 Design e Prototipazione
-- Figma: utilizzato per la progettazione dell’interfaccia utente (UI) e per lo studio della user experience (UX), consentendo la definizione dei flussi di navigazione e dello stile grafico prima della fase di sviluppo.
-- Floorplanner: impiegato per la progettazione degli spazi dell’ufficio e per la creazione della planimetria 2D, utilizzata come base grafica della mappa interattiva.
+
+Figma: usato per progettare UI/UX e flussi prima di sviluppare.
+
+Floorplanner: usato per creare la planimetria 2D dell’ufficio, poi utilizzata come mappa interattiva.
 
 4.2 Backend (Lato Server)
-- ASP.NET Core (MVC): framework utilizzato come struttura portante dell’applicazione, garantendo il rispetto del pattern MVC, sicurezza e scalabilità.
-- C#: linguaggio utilizzato per l’implementazione della logica di business e la gestione delle funzionalità di prenotazione.
+
+ASP.NET Core (MVC): struttura principale dell’applicazione con pattern MVC.
+
+C#: logica di business e gestione prenotazioni.
+
+MySQL: database usato per salvare utenti, prenotazioni e contenuti del sito.
 
 4.3 Frontend (Lato Client)
-- Vue.js: framework JavaScript integrato nelle viste MVC per garantire reattività e aggiornamenti dinamici dei contenuti senza ricaricare la pagina.
-- Bootstrap 5: libreria utilizzata per la realizzazione di un layout responsive e per la stilizzazione coerente dei componenti dell’interfaccia.
 
----
+Vue.js: usato nelle viste MVC per rendere la pagina dinamica senza refresh.
 
-## 6. Descrizione del funzionamento
+Bootstrap 5: layout responsive e stile coerente dei componenti.
+
+6. Descrizione del funzionamento
 
 Il sistema è stato pensato per essere facile da usare per chiunque. Ecco i passaggi principali:
 
-- Mappa e Colori: Appena l'utente entra, vede la mappa dell'ufficio. Non servono liste complicate: i colori dicono subito tutto. Se una stanza è Verde è libera, se è Rossa è occupata.
-- Grafici e Guide: Intorno alla mappa ci sono delle schede (card) molto utili. Alcune mostrano dei grafici per capire a colpo d'occhio quanto è affollato l'ufficio oggi. Altre schede funzionano come una guida: spiegano le regole e mostrano tutti i servizi disponibili.
-- Carrello Unico: L'utente non deve fare tante prenotazioni separate. Può mettere tutto nel carrello (ad esempio: la scrivania per lavorare e il tavolo per il pranzo) e confermare l'intera giornata con un solo click finale.
+Mappa e Colori: appena l’utente entra vede la mappa dell’ufficio. I colori fanno capire subito tutto: se una stanza è verde è libera, se è rossa è occupata.
 
----
+Grafici e Guide: intorno alla mappa ci sono delle card utili. Alcune mostrano grafici per capire quanto è affollato l’ufficio. Altre spiegano regole e servizi disponibili.
 
-## 7. Link utili
-- https://floorplanner.com/projects/180160063/editor
-- https://www.figma.com/design/vnJ8D0PBEFPyRsMZrkFyba/Untitled?node-id=0-1&p=f&t=w6btnuBEH7e88zIJ-0
+Carrello Unico: l’utente può mettere tutto nel carrello (ad esempio postazione + ristorante) e confermare tutto insieme con un solo click.
 
+7. Link utili
+
+https://floorplanner.com/projects/180160063/editor
+
+https://www.figma.com/design/vnJ8D0PBEFPyRsMZrkFyba/Untitled?node-id=0-1&p=f&t=w6btnuBEH7e88zIJ-0
+
+https://template-web-819095504988.europe-west1.run.app
