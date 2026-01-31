@@ -1,9 +1,3 @@
-/* Bottone Annulla selezione sidebar */
-.sidebar-area .btn-annulla-selezione {
-    background-color: #dc3545 !important;
-    color: #fff !important;
-    border-color: #dc3545 !important;
-}
 .sidebar-area {
     background-color: #ffffff;
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.03);
@@ -17,12 +11,7 @@
     margin-top: 100px;
     
     width: clamp(300px, 28vw, 450px);
-    font-size: clamp(9px, 0.6vw, 12px);
-    @media (max-width: 576px) {
-        .sidebar-area {
-            font-size: 10px;
-        }
-    }
+    font-size: clamp(13px, 0.9vw, 16px);
     padding: clamp(1rem, 2vw, 2rem);
     flex-shrink: 0;
 }
