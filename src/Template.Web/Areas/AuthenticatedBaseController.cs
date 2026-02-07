@@ -28,30 +28,31 @@ namespace Template.Web.Areas
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            try
+            if (context.HttpContext == null || context.HttpContext.User == null || !context.HttpContext.User.Identity.IsAuthenticated)
             {
-                if (context.HttpContext != null && context.HttpContext.User != null && context.HttpContext.User.Identity.IsAuthenticated)
-                {
-                    ViewData[IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY] = new IdentitaViewModel
-                    {
-                        EmailUtenteCorrente = context.HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Email).First().Value
-                    };
-                }
-                else
-                {
-                    HttpContext.SignOutAsync();
-                    this.SignOut();
-
-                    context.Result = new RedirectResult(context.HttpContext.Request.GetEncodedUrl());
-                    Alerts.AddError(this, "L'utente non possiede i diritti per visualizzare la risorsa richiesta");
-                }
-
-                base.OnActionExecuting(context);
+                HttpContext.SignOutAsync();
+                this.SignOut();
+                Alerts.AddError(this, "L'utente non possiede i diritti per visualizzare la risorsa richiesta");
+                context.Result = new RedirectToActionResult("Login", "Login", null);
+                return;
             }
-            catch (Exception)
+
+            var email = context.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrWhiteSpace(email))
             {
-                throw;
+                HttpContext.SignOutAsync();
+                this.SignOut();
+                Alerts.AddError(this, "Sessione non valida. Effettua di nuovo il login.");
+                context.Result = new RedirectToActionResult("Login", "Login", null);
+                return;
             }
+
+            ViewData[IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY] = new IdentitaViewModel
+            {
+                EmailUtenteCorrente = email
+            };
+
+            base.OnActionExecuting(context);
         }
     }
 }

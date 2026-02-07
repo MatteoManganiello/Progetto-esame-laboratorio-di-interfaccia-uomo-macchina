@@ -39,7 +39,7 @@ namespace Template.Web.Features.AreaRiservata
                 {
                     Id = p.Id,
                     Data = p.DataCreazione,
-                    Descrizione = p.Postazione.Nome + (p.NumeroPersone > 1 ? $" (x{p.NumeroPersone})" : ""),
+                    Descrizione = p.Postazione.Nome,
                     Prezzo = p.Prezzo
                 })
                 .ToListAsync();
