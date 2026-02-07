@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Configura servizi (DB, DI, auth, MVC, SignalR, health checks) 
+// e pipeline middleware (routing, static files, localization, endpoint) dell'app web.
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,12 +17,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Template.Web.Infrastructure;
 using Template.Web.SignalR.Hubs;
-
-// --- NAMESPACE CORRETTI ---
-using Template.Data;                   // Per TemplateDbContext
-using Template.Services.Utenti;        // Per UserQueries, RegisterService
-using Template.Services.Prenotazioni;  // Per PrenotazioneService
-using Template.Services.Ristorazione;  // Per RistorazioneService
+using Template.Data;              
+using Template.Services.Utenti;     
+using Template.Services.Prenotazioni;
+using Template.Services.Ristorazione;  
 
 namespace Template.Web
 {
@@ -55,8 +55,7 @@ namespace Template.Web
                 });
             });
 
-            // 2. REGISTRAZIONE SERVIZI (Dependency Injection)
-            // ==============================================================
+            // 2. REGISTRAZIONE SERVIZI 
             
             // A. UserQueries (Per Login e Gestione Utenti)
             services.AddScoped<UserQueries>();
@@ -73,7 +72,6 @@ namespace Template.Web
             // E. UserManagementService (Per Gestione Utenti CRUD)
             services.AddScoped<Template.Services.Utenti.UserManagementService>();
             
-            // ==============================================================
 
             // SERVIZI DI AUTENTICAZIONE
             services.AddSession();
@@ -117,7 +115,6 @@ namespace Template.Web
             services.AddHealthChecks()
                 .AddDbContextCheck<TemplateDbContext>();
             
-            // Registra eventuali altri tipi definiti in Container.cs
             Container.RegisterTypes(services);
         }
 
@@ -137,13 +134,11 @@ namespace Template.Web
 
             app.UseRequestLocalization(SupportedCultures.CultureNames);
             
-            // --- ORDINE FONDAMENTALE DEI MIDDLEWARE ---
             app.UseRouting();
             app.UseSession();
             
-            app.UseAuthentication(); // 1. Chi sei?
-            app.UseAuthorization();  // 2. Puoi entrare?
-            // ------------------------------------------
+            app.UseAuthentication();
+            app.UseAuthorization(); 
 
             var fileProviders = new List<IFileProvider> { env.WebRootFileProvider };
 
@@ -173,7 +168,6 @@ namespace Template.Web
                 
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
 
-                // Default route che punta alla Mappa
                 endpoints.MapControllerRoute(
                     name: "default", 
                     pattern: "{controller=Prenotazione}/{action=Mappa}/{id?}");
