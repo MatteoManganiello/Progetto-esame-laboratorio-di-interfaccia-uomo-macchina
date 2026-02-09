@@ -22,7 +22,7 @@
     <div class="row g-4">
 
         <div class="col-lg-4">
-            <div class="card shadow-lg border-0 h-100 overflow-hidden card-hover-effect">
+            <div class="card border border-dark border-opacity-10 shadow-sm h-100 overflow-hidden card-hover-effect">
                 <div class="card-header bg-gradient-profile text-white py-4 text-center border-0">
                     <div class="mb-3">
                         <div class="avatar-placeholder mx-auto shadow-sm">
@@ -56,7 +56,7 @@
 
         <div class="col-lg-8">
 
-            <div class="card shadow-lg border-0 mb-4 overflow-hidden card-hover-effect">
+            <div class="card border border-dark border-opacity-10 shadow-sm mb-4 overflow-hidden card-hover-effect">
                 <div
                     class="card-header bg-gradient-orders text-white py-3 d-flex justify-content-between align-items-center border-0">
                     <div class="d-flex align-items-center">
@@ -117,7 +117,7 @@
                 </div>
             </div>
 
-            <div class="card shadow-lg border-0 mb-4 overflow-hidden card-hover-effect" id="ordini">
+            <div class="card border border-dark border-opacity-10 shadow-sm mb-4 overflow-hidden card-hover-effect" id="ordini">
                 <div class="card-header bg-gradient-danger text-white py-3 border-0">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-clock-rotate-left fa-lg me-3 opacity-75"></i>
@@ -184,8 +184,8 @@
                 </div>
             </div>
 
-            <div class="card shadow-lg border-0 overflow-hidden card-hover-effect">
-                <div class="card shadow-lg border-0 overflow-hidden card-hover-effect">
+            <div class="card border border-dark border-opacity-10 shadow-sm overflow-hidden card-hover-effect">
+                <div class="card border border-dark border-opacity-10 shadow-sm overflow-hidden card-hover-effect">
                     <div class="card-header bg-gradient-success text-white py-3 border-0">
                         <h6 class="mb-0 fw-bold text-uppercase tracking-wide">I tuoi preferiti (Top 2)</h6>
                     </div>
@@ -232,33 +232,28 @@
 <style>
     /* 1. GRADIENTI PERSONALIZZATI */
     .bg-gradient-profile {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        /* Blue to Purple */
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.5) 100%),
+            url('/images/img_areariservata.jpg') center/cover no-repeat;
     }
 
     .bg-gradient-orders {
-        background: linear-gradient(135deg, #0061f2 0%, #6900f2 100%);
-        /* Blue Vivid */
+        background: linear-gradient(135deg, rgba(0, 97, 242, 0.9) 0%, rgba(105, 0, 242, 0.9) 100%);
+        /* Blue Vivid (softened) */
     }
 
     .bg-gradient-danger {
-        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-        /* Pink to Red */
+        background: linear-gradient(135deg, rgba(255, 65, 108, 0.9) 0%, rgba(255, 75, 43, 0.9) 100%);
+        /* Pink to Red (softened) */
     }
 
     .bg-gradient-success {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        /* Teal to Green */
+        background: linear-gradient(135deg, rgba(17, 153, 142, 0.9) 0%, rgba(56, 239, 125, 0.9) 100%);
+        /* Teal to Green (softened) */
     }
 
     /* 2. EFFETTI HOVER E OMBRE */
     .card-hover-effect {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card-hover-effect:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 1rem 3rem rgba(0, 0, 0, .15) !important;
+        transition: box-shadow 0.3s ease;
     }
 
     /* 3. ELEMENTI GRAFICI */

@@ -117,7 +117,6 @@ namespace Template.Services.Utenti
 
             if (qry.IdCurrentUser != Guid.Empty)
             {
-                 // queryable = queryable.Where(x => x.Id != qry.IdCurrentUser);
             }
 
             if (!string.IsNullOrWhiteSpace(qry.Filter))
