@@ -81,7 +81,6 @@ namespace Template.Web.Features.Login
 
         private async Task<ActionResult> LoginAndRedirect(string username, string userId, string returnUrl, bool rememberMe)
         {
-            // Recupera l'utente per ottenere il ruolo
             var utente = await _userQueries.Query(new UserDetailQuery { Id = Guid.Parse(userId) });
             var ruolo = utente?.Ruolo ?? RuoliCostanti.USER;
             
@@ -118,7 +117,6 @@ namespace Template.Web.Features.Login
             Console.WriteLine($"[DEBUG] RuoliCostanti.SUPER_ADMIN: '{RuoliCostanti.SUPER_ADMIN}'");
             Console.WriteLine($"[DEBUG] Confronto SUPER_ADMIN: {ruolo == RuoliCostanti.SUPER_ADMIN}");
 
-            // Reindirizza in base al ruolo
             if (ruolo == RuoliCostanti.SUPER_ADMIN)
             {
                 Console.WriteLine("[DEBUG] Reindirizzamento a SuperAdmin/Dashboard");

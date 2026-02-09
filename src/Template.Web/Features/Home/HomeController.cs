@@ -17,7 +17,7 @@ namespace Template.Web.Features.Home
             Response.Cookies.Append(
                 CookieRequestCultureProvider.DefaultCookieName,
                 CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(cultureName)),
-                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), Secure = true }    // Secure assicura che il cookie sia inviato solo per connessioni HTTPS
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), Secure = true }  
             );
 
             return Redirect(Request.GetTypedHeaders().Referer.ToString());

@@ -84,7 +84,6 @@ namespace Template.Web.Features.AreaRiservata
             var ageHours = (DateTime.Now - prenotazione.DataCreazione).TotalHours;
             _logger?.LogInformation("Prenotazione trovata id={Id} creata={DataCreazione} ageHours={Age}", id, prenotazione.DataCreazione, ageHours);
 
-            // Controlla che sia cancellabile (entro 1 ora dalla creazione)
             if (ageHours < 1 || (_env != null && _env.IsDevelopment()))
             {
                 _dbContext.Prenotazioni.Remove(prenotazione);
@@ -101,7 +100,6 @@ namespace Template.Web.Features.AreaRiservata
             return RedirectToAction("Index");
         }
 
-        // DEBUG: Permette la cancellazione via GET solo in Development per test rapido.
         [HttpGet]
         public virtual async Task<IActionResult> DebugDeleteOrder(int id)
         {

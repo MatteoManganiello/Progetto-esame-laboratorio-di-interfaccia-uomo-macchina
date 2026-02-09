@@ -26,16 +26,12 @@ namespace Template.Web.Features.Admin
             _dbContext = dbContext;
         }
 
-        /// <summary>
-        /// Verifica se l'utente è un Admin (Admin o SuperAdmin)
-        /// </summary>
         private bool IsAdmin()
         {
             var userIdentity = User.Identity;
             if (userIdentity == null || !userIdentity.IsAuthenticated)
                 return false;
 
-            // Idealmente leggeresti il ruolo da claims, ma per ora verifichi dal cookie
             var role = User.FindFirst("Ruolo")?.Value ?? "User";
             return role == RuoliCostanti.ADMIN || role == RuoliCostanti.SUPER_ADMIN;
         }
@@ -47,7 +43,6 @@ namespace Template.Web.Features.Admin
                 return Unauthorized();
 
             ViewBag.Title = "Dashboard Admin";
-            // Carica messaggi inviati dal SuperAdmin dal database e mappali su NotificaItem per la view
             var messaggi = _dbContext.MessaggiSuperAdmin
                 .OrderByDescending(m => m.DataCreazione)
                 .Take(20)
@@ -68,7 +63,6 @@ namespace Template.Web.Features.Admin
             if (!IsAdmin())
                 return Unauthorized();
 
-            // Carica i dati attuali da ViewBag o da un servizio
             ViewBag.Novita = new object[] { };
             ViewBag.MenuSettimanale = new object[] { };
 
@@ -144,7 +138,6 @@ namespace Template.Web.Features.Admin
             if (!IsAdmin())
                 return Unauthorized();
 
-            // Carica tutte le notifiche dal database e mappale su NotificaItem per la view
             var notificheDb = _dbContext.Notifiche.ToList();
             var notificheList = notificheDb.Select(n => new NotificaItem
             {
@@ -153,7 +146,6 @@ namespace Template.Web.Features.Admin
                 Contenuto = n.Contenuto
             }).ToList();
 
-            // Garantire almeno 3 elementi per la UI (comportamento precedente)
             while (notificheList.Count < 3)
             {
                 notificheList.Add(new NotificaItem());
@@ -172,12 +164,10 @@ namespace Template.Web.Features.Admin
             var cleaned = (notifiche ?? new System.Collections.Generic.List<NotificaItem>())
                 .FindAll(n => !string.IsNullOrWhiteSpace(n?.Titolo) || !string.IsNullOrWhiteSpace(n?.Contenuto) || !string.IsNullOrWhiteSpace(n?.Data));
 
-            // Rimuovi tutte le notifiche precedenti dal database
             var tutte = _dbContext.Notifiche.ToList();
             _dbContext.Notifiche.RemoveRange(tutte);
             _dbContext.SaveChanges();
 
-            // Salva le nuove notifiche mappando da NotificaItem a Template.Entities.Notifica
             foreach (var n in cleaned)
             {
                 var notificaDb = new Template.Entities.Notifica
@@ -211,7 +201,6 @@ namespace Template.Web.Features.Admin
 
         private static DateTime? ParseIsoWeek(string isoWeek)
         {
-            // Expected format: YYYY-Www
             if (string.IsNullOrWhiteSpace(isoWeek))
                 return null;
 
@@ -253,8 +242,6 @@ namespace Template.Web.Features.Admin
 
             try
             {
-                // TODO: Salvare i dati nel database
-                // Per ora restituisci il successo
                 return Ok(new { success = true, message = "InfoCards aggiornate con successo" });
             }
             catch (Exception ex)

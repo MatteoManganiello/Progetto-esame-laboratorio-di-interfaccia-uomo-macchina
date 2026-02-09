@@ -269,9 +269,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 <script>
-    // Weekly Chart (Line)
 
-    // Utility per formattazione Euro
     const fmtEuro = (v) => '€' + new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
     const sezioneColors = {
@@ -283,7 +281,6 @@
     };
 
     function updateDashboard(stats) {
-        // Alcuni serializer possono usare camelCase o PascalCase
         const s = stats;
         const get = (o, k) => o[k] ?? o[k.charAt(0).toUpperCase() + k.slice(1)];
 
@@ -339,9 +336,7 @@
         }
     }
 
-    // Polling ogni 7 secondi
     setInterval(fetchStats, 7000);
-    // Primo aggiornamento dopo il render iniziale
     window.addEventListener('DOMContentLoaded', fetchStats);
 
 </script>
@@ -355,8 +350,4 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    /* RIMOSSO: Il bordo bianco sotto i gradienti non stava bene */
-    /* .card-header {
-        border-bottom: 2px solid rgba(255,255,255,0.1);
-    } */
 </style>
