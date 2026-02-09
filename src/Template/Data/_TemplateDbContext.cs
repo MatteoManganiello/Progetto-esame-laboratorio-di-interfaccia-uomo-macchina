@@ -1,5 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Template.Entities; // Per vedere User, Postazione, Prenotazione
+﻿// DbContext principale dell’applicazione: definisce le tabelle EF Core tramite DbSet
+// e applica configurazioni al modello (es. indici, vincoli, relazioni).
+// Gestisce le entità di dominio per utenti, prenotazioni, postazioni, menu e notifiche.
+
+
+using Microsoft.EntityFrameworkCore;
+using Template.Entities;
 
 namespace Template.Data
 {
@@ -10,7 +15,6 @@ namespace Template.Data
         {
         }
 
-        // Definizione delle Tabelle
         public DbSet<User> Users { get; set; }
         public DbSet<Postazione> Postazioni { get; set; }
         public DbSet<Prenotazione> Prenotazioni { get; set; }
@@ -22,11 +26,6 @@ namespace Template.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // QUI C'ERA L'ERRORE: DataGenerator.InitializeUsers(...)
-            // L'abbiamo rimosso perché ora i dati vengono caricati da Program.cs
-            
-            // Configurazioni aggiuntive (opzionali)
-            // Es. definire chiavi primarie composte o relazioni specifiche se servono
             modelBuilder.Entity<MenuSettimanale>()
                 .HasIndex(m => m.WeekStart)
                 .IsUnique();

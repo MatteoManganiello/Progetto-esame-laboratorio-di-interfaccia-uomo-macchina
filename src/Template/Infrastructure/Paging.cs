@@ -10,10 +10,7 @@ namespace Template.Infrastructure
         public string OrderBy { get; set; }
         public bool OrderByDescending { get; set; }
 
-        /// <summary>
-        /// Se non è necessario avere nel dettaglio il numero di elementi totali è possiile richidere un ulteriore elemento per verificare se attivare la paginazione alla pagina successiva
-        /// Viceversa, se non si è alla prima pagina è necessario attivare la paginazione alla pagina precedente
-        /// </summary>
+
         public bool OneMoreItem { get; set; }
 
         public Paging()

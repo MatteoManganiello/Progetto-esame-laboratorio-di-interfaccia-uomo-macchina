@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Seed di dati iniziali per ambiente di sviluppo/demo.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,6 @@ namespace Template.Infrastructure
             using (var context = new TemplateDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<TemplateDbContext>>()))
             {
-                // Se ci sono già postazioni, non fare nulla (il DB è già pieno)
                 if (context.Postazioni.Any())
                 {
                     return; 
@@ -23,7 +23,6 @@ namespace Template.Infrastructure
 
                 Console.WriteLine("--> GENERAZIONE DATI DI PROVA...");
 
-                // 1. CREIAMO GLI UTENTI CON RUOLI DIVERSI
                 var superAdmin = new User
                 {
                     Email = "superadmin@test.com",
@@ -56,11 +55,9 @@ namespace Template.Infrastructure
 
                 context.Users.AddRange(superAdmin, admin, user);
 
-                // 2. CREIAMO LE POSTAZIONI (Layout originale della mappa)
                 var postazioni = new List<Postazione>();
                 int idCounter = 1;
 
-                // Main Hall (Sala eventi grande)
                 postazioni.Add(new Postazione 
                 { 
                     CodiceUnivoco = "event-main", 
@@ -73,7 +70,6 @@ namespace Template.Infrastructure
                     PostiTotali = 50 
                 });
 
-                // Desk individuali (griglia 5x3)
                 for (int r = 0; r < 5; r++) 
                 { 
                     for (int c = 0; c < 3; c++) 
@@ -93,7 +89,6 @@ namespace Template.Infrastructure
                     } 
                 }
 
-                // Team rooms
                 postazioni.Add(new Postazione 
                 { 
                     CodiceUnivoco = "dev-1", 
@@ -118,7 +113,6 @@ namespace Template.Infrastructure
                     PostiTotali = 6 
                 });
 
-                // Meeting rooms
                 postazioni.Add(new Postazione 
                 { 
                     CodiceUnivoco = "meet-1", 
@@ -143,7 +137,6 @@ namespace Template.Infrastructure
                     PostiTotali = 6 
                 });
 
-                // Tavoli ristorante
                 for (int i = 0; i < 3; i++)
                 {
                     postazioni.Add(new Postazione 
@@ -162,16 +155,14 @@ namespace Template.Infrastructure
                 context.Postazioni.AddRange(postazioni);
                 context.SaveChanges();
 
-                // 3. CREIAMO PRENOTAZIONI DI TEST CON PREZZI
                 var random = new Random();
                 var prenotazioni = new List<Prenotazione>();
 
-                // Creiamo 20 prenotazioni distribuite tra gli utenti
                 for (int i = 0; i < 20; i++)
                 {
                     var utenteId = i % 3 == 0 ? superAdmin.Id : (i % 3 == 1 ? admin.Id : user.Id);
-                    var prezzo = (decimal)(25 + random.Next(0, 75)); // Prezzi da 25 a 100 euro
-                    var dataPrenotazione = DateTime.Now.AddDays(random.Next(-30, 30)); // Ultimi/prossimi 30 giorni
+                    var prezzo = (decimal)(25 + random.Next(0, 75)); 
+                    var dataPrenotazione = DateTime.Now.AddDays(random.Next(-30, 30));
 
                     prenotazioni.Add(new Prenotazione
                     {
@@ -181,7 +172,7 @@ namespace Template.Infrastructure
                         DataCreazione = DateTime.Now.AddDays(random.Next(-30, 0)),
                         NumeroPersone = random.Next(1, 5),
                         Prezzo = prezzo,
-                        IsCancellata = random.NextDouble() < 0.1, // 10% cancellate
+                        IsCancellata = random.NextDouble() < 0.1, 
                         Note = i % 5 == 0 ? "Prenotazione da testare" : null
                     });
                 }

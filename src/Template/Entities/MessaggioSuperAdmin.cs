@@ -7,8 +7,7 @@ namespace Template.Entities
         public int Id { get; set; }
         public string Titolo { get; set; }
         public string Contenuto { get; set; }
-        public string Data { get; set; } // Puoi cambiarlo in DateTime se preferisci
+        public string Data { get; set; }
         public DateTime DataCreazione { get; set; } = DateTime.UtcNow;
-        // Eventuali altri campi specifici (es. destinatario, mittente, ecc.)
     }
 }
